@@ -161,7 +161,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Define the three service types (Routine Check-Up, Emergency Visit, Farm Visit) with base prices,
   and let the admin update service pricing (SR3.1, SR6.4, SR8.15).
 
-- [ ] **Task 7 — Availability slots management**
+- [x] **Task 7 — Availability slots management**
   Let veterinarians create and manage available/unavailable time slots; booked slots are marked
   unavailable so they cannot be double-booked (SR4.3–SR4.4, SR5.3–SR5.4).
 

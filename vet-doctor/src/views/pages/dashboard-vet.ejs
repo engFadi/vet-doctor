@@ -27,9 +27,19 @@
     </article>
 
     <article class="card">
-      <h3>What you can do</h3>
-      <p>Manage availability, handle assigned appointments, acknowledge emergencies, and submit
-         medical records. These features are added in the upcoming tasks.</p>
+      <h3>My availability</h3>
+      <p>Add and manage the time slots when you are available for visits.</p>
+      <% if (user.isApproved) { %>
+        <a class="btn btn-primary" href="/vet/slots">Manage availability</a>
+      <% } else { %>
+        <p class="muted">Available once your account is approved.</p>
+      <% } %>
+    </article>
+
+    <article class="card">
+      <h3>What's next</h3>
+      <p>Assigned appointments, emergency acknowledgement, and medical records are added in the
+         upcoming tasks.</p>
     </article>
   </div>
 </section>

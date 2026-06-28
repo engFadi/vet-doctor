@@ -359,6 +359,41 @@ body {
   color: #9a5b00;
 }
 
+.badge-info {
+  background: #e3f0fb;
+  color: #1c5a8a;
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 0.55rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.data-table th {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.btn-small {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.card-span {
+  grid-column: 1 / -1;
+}
+
 /* Footer */
 .site-footer {
   background: #eef3f1;

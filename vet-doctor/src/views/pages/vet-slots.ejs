@@ -1,0 +1,82 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>My availability</h1>
+  <p class="lead">Add time slots when you are available for home and farm visits.</p>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3>Add a slot</h3>
+      <form action="/vet/slots" method="POST" class="form">
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" min="<%= today %>" required />
+
+        <label for="startTime">Start time</label>
+        <input type="time" id="startTime" name="startTime" required />
+
+        <label for="endTime">End time</label>
+        <input type="time" id="endTime" name="endTime" required />
+
+        <button type="submit" class="btn btn-primary">Add slot</button>
+      </form>
+    </article>
+
+    <article class="card card-span">
+      <h3>My slots</h3>
+      <% if (slots.length === 0) { %>
+        <p class="muted">You have not added any availability slots yet.</p>
+      <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% slots.forEach(function (slot) { %>
+              <tr>
+                <td><%= slot.date %></td>
+                <td><%= slot.startTime %> &ndash; <%= slot.endTime %></td>
+                <td>
+                  <% if (slot.status === statuses.AVAILABLE) { %>
+                    <span class="badge badge-success">Available</span>
+                  <% } else if (slot.status === statuses.BOOKED) { %>
+                    <span class="badge badge-info">Booked</span>
+                  <% } else { %>
+                    <span class="badge badge-warning">Unavailable</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div class="action-row">
+                    <% if (slot.status === statuses.AVAILABLE) { %>
+                      <form action="/vet/slots/<%= slot.id %>/unavailable" method="POST">
+                        <button type="submit" class="btn btn-small btn-secondary">Make unavailable</button>
+                      </form>
+                    <% } else if (slot.status === statuses.UNAVAILABLE) { %>
+                      <form action="/vet/slots/<%= slot.id %>/available" method="POST">
+                        <button type="submit" class="btn btn-small btn-primary">Make available</button>
+                      </form>
+                    <% } %>
+                    <% if (slot.status !== statuses.BOOKED) { %>
+                      <form action="/vet/slots/<%= slot.id %>/delete" method="POST"
+                            onsubmit="return confirm('Delete this slot?');">
+                        <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </article>
+  </div>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

@@ -25,8 +25,16 @@ const SERVICE_TYPE = {
   FARM_VISIT: 'FARM_VISIT',
 };
 
+// AvailabilityStatus enumeration (veterinarian time slots).
+const AVAILABILITY_STATUS = {
+  AVAILABLE: 'AVAILABLE',
+  UNAVAILABLE: 'UNAVAILABLE',
+  BOOKED: 'BOOKED',
+};
+
 module.exports = {
   ROLES,
   ACCOUNT_STATUS,
   SERVICE_TYPE,
+  AVAILABILITY_STATUS,
 };
