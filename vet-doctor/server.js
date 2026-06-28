@@ -13,6 +13,7 @@ const flash = require('./src/middleware/flash');
 const { attachUser } = require('./src/middleware/auth');
 const indexRoutes = require('./src/routes/indexRoutes');
 const authRoutes = require('./src/routes/authRoutes');
+const registerRoutes = require('./src/routes/registerRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use(attachUser);
 
 // Routes (MVC: routes -> controllers -> views)
 app.use('/', authRoutes);
+app.use('/register', registerRoutes);
 app.use('/', indexRoutes);
 
 // 404 handler

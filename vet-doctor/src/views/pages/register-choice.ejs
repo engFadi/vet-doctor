@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+
+<section class="hero">
+  <h1>Create your account</h1>
+  <p class="lead">Choose the type of account you would like to register.</p>
+</section>
+
+<section class="services">
+  <div class="card-grid">
+    <article class="card">
+      <h3>I'm a Client</h3>
+      <p>Pet owner or farmer booking home and farm visits for your animals.</p>
+      <a class="btn btn-primary" href="/register/client">Register as Client</a>
+    </article>
+    <article class="card">
+      <h3>I'm a Veterinarian</h3>
+      <p>Licensed vet offering home and farm visits. Accounts are activated after admin approval.</p>
+      <a class="btn btn-secondary" href="/register/veterinarian">Register as Veterinarian</a>
+    </article>
+  </div>
+  <p class="muted" style="text-align:center; margin-top:1.5rem;">
+    Already have an account? <a href="/login">Log in</a>.
+  </p>
+</section>
+
+<%- include('../partials/footer') %>

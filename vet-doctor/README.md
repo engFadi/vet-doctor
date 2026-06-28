@@ -129,7 +129,7 @@ The system is built incrementally. Each task is one logical commit.
 - [x] **Task 0** — Project setup and MVC structure
 - [x] **Task 1** — SQLite + Sequelize database configuration
 - [x] **Task 2** — User model, roles, authentication, sessions, password hashing
-- [ ] **Task 3** — Client and veterinarian registration
+- [x] **Task 3** — Client and veterinarian registration
 - [ ] **Task 4** — Admin seed account and role-based dashboards
 - [ ] **Task 5** — Veterinarian approval workflow
 - [ ] **Task 6** — Services and service pricing

@@ -1,0 +1,44 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Register as a Veterinarian</h1>
+  <p class="muted">Your account will be reviewed by an administrator before activation.</p>
+
+  <%- include('../partials/form-errors') %>
+
+  <form action="/register/veterinarian" method="POST" class="form" novalidate>
+    <label for="fullName">Full name</label>
+    <input type="text" id="fullName" name="fullName" value="<%= form.fullName || '' %>" required />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" value="<%= form.email || '' %>" required />
+
+    <label for="phoneNumber">Phone number</label>
+    <input type="text" id="phoneNumber" name="phoneNumber" value="<%= form.phoneNumber || '' %>" required />
+
+    <label for="licenseNumber">Professional license number</label>
+    <input type="text" id="licenseNumber" name="licenseNumber" value="<%= form.licenseNumber || '' %>" required />
+
+    <label for="specialization">Specialization</label>
+    <input type="text" id="specialization" name="specialization" value="<%= form.specialization || '' %>" required />
+
+    <label for="serviceArea">Service area</label>
+    <input type="text" id="serviceArea" name="serviceArea" value="<%= form.serviceArea || '' %>" required />
+
+    <label for="yearsOfExperience">Years of experience <span class="muted">(optional)</span></label>
+    <input type="number" id="yearsOfExperience" name="yearsOfExperience" min="0" value="<%= form.yearsOfExperience || '' %>" />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+    <small class="muted">At least 8 characters, with an uppercase letter, a digit, and a special character.</small>
+
+    <label for="confirmPassword">Confirm password</label>
+    <input type="password" id="confirmPassword" name="confirmPassword" required />
+
+    <button type="submit" class="btn btn-primary">Submit registration</button>
+  </form>
+
+  <p class="muted">Looking to book visits instead? <a href="/register/client">Register as a client</a>.</p>
+</section>
+
+<%- include('../partials/footer') %>

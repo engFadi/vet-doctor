@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Register as a Client</h1>
+
+  <%- include('../partials/form-errors') %>
+
+  <form action="/register/client" method="POST" class="form" novalidate>
+    <label for="fullName">Full name</label>
+    <input type="text" id="fullName" name="fullName" value="<%= form.fullName || '' %>" required />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" value="<%= form.email || '' %>" required />
+
+    <label for="phoneNumber">Phone number</label>
+    <input type="text" id="phoneNumber" name="phoneNumber" value="<%= form.phoneNumber || '' %>" required />
+
+    <label for="address">Physical address</label>
+    <input type="text" id="address" name="address" value="<%= form.address || '' %>" required />
+
+    <label for="customerType">Client type</label>
+    <select id="customerType" name="customerType" required>
+      <option value="">-- Select --</option>
+      <% clientTypes.forEach(function (type) { %>
+        <option value="<%= type %>" <%= form.customerType === type ? 'selected' : '' %>><%= type %></option>
+      <% }); %>
+    </select>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+    <small class="muted">At least 8 characters, with an uppercase letter, a digit, and a special character.</small>
+
+    <label for="confirmPassword">Confirm password</label>
+    <input type="password" id="confirmPassword" name="confirmPassword" required />
+
+    <button type="submit" class="btn btn-primary">Create account</button>
+  </form>
+
+  <p class="muted">Want to offer visits instead? <a href="/register/veterinarian">Register as a veterinarian</a>.</p>
+</section>
+
+<%- include('../partials/footer') %>
