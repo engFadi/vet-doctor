@@ -13,6 +13,7 @@ const {
   APPOINTMENT_STATUS,
 } = require('../models/enums');
 const emergencyService = require('../services/emergencyService');
+const notificationService = require('../services/notificationService');
 
 const Animal = db.Animal;
 const Service = db.Service;
@@ -354,7 +355,7 @@ exports.confirmBooking = async (req, res, next) => {
     const appointmentDateTime = new Date(`${slot.date}T${slot.startTime}:00`);
     const isEmergency = service.serviceType === SERVICE_TYPE.EMERGENCY_VISIT;
 
-    await Appointment.create({
+    const appointment = await Appointment.create({
       clientId: req.session.user.id,
       veterinarianId: slot.veterinarianId,
       serviceId: service.id,
@@ -370,6 +371,21 @@ exports.confirmBooking = async (req, res, next) => {
     });
 
     await slot.markBooked(); // SR4.4 / SR5.4
+
+    // Booking confirmation to client and veterinarian (SR7.1-7.2).
+    const when = appointmentDateTime.toLocaleString();
+    await notificationService.notify({
+      userId: req.session.user.id,
+      subject: isEmergency ? 'Emergency visit booked' : 'Booking confirmed',
+      body: `${service.name} for ${animal.name} on ${when} at ${form.location}.`,
+      appointmentId: appointment.id,
+    });
+    await notificationService.notify({
+      userId: slot.veterinarianId,
+      subject: isEmergency ? 'New emergency assigned' : 'New appointment assigned',
+      body: `${service.name} for ${animal.name} on ${when} at ${form.location}.`,
+      appointmentId: appointment.id,
+    });
 
     req.flash(
       'success',
@@ -434,6 +450,16 @@ exports.cancelAppointment = async (req, res, next) => {
       appointment.slot.status = AVAILABILITY_STATUS.AVAILABLE;
       await appointment.slot.save();
     }
+
+    // Notify the assigned veterinarian (SR3.14).
+    await notificationService.notify({
+      userId: appointment.veterinarianId,
+      subject: 'Appointment cancelled',
+      body: `The client cancelled the appointment scheduled for ${new Date(
+        appointment.appointmentDateTime
+      ).toLocaleString()}.`,
+      appointmentId: appointment.id,
+    });
 
     req.flash('success', 'Your appointment has been cancelled.');
     return res.redirect(APPOINTMENTS_LIST);

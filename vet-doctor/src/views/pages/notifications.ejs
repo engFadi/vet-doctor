@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Notifications</h1>
+
+  <% if (notifications.length === 0) { %>
+    <div class="card">
+      <p class="muted">You have no notifications.</p>
+    </div>
+  <% } else { %>
+    <ul class="notif-list">
+      <% notifications.forEach(function (n) { %>
+        <li class="notif-item <%= n.isRead ? '' : 'notif-unread' %>">
+          <div class="notif-subject"><%= n.subject %></div>
+          <% if (n.body) { %><div class="notif-body"><%= n.body %></div><% } %>
+          <div class="notif-time muted"><%= new Date(n.createdAt).toLocaleString() %></div>
+        </li>
+      <% }); %>
+    </ul>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

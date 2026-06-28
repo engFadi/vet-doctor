@@ -34,6 +34,9 @@ module.exports = (sequelize) => {
       acknowledgedAt: { type: DataTypes.DATE, allowNull: true },
       // Emergency acknowledgement deadline (SR3.11). Null for non-emergencies.
       acknowledgementDeadline: { type: DataTypes.DATE, allowNull: true },
+      // Reminder dedup flags (SR7.5 / SR7.6).
+      reminder24hSent: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+      reminder1hSent: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     },
     {
       tableName: 'appointments',

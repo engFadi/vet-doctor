@@ -18,6 +18,7 @@ db.Service = require('./Service')(sequelize);
 db.AvailabilitySlot = require('./AvailabilitySlot')(sequelize);
 db.Animal = require('./Animal')(sequelize);
 db.Appointment = require('./Appointment')(sequelize);
+db.Notification = require('./Notification')(sequelize);
 
 // --- Define associations (once all models are loaded) ---
 Object.values(db).forEach((model) => {

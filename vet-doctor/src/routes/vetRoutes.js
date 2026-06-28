@@ -24,4 +24,8 @@ router.get('/emergencies', vetController.listEmergencies);
 router.post('/emergencies/:id/acknowledge', vetController.acknowledgeEmergency);
 router.post('/emergencies/:id/decline', vetController.declineEmergency);
 
+// Assigned appointments + status tracking
+router.get('/appointments', vetController.listAppointments);
+router.post('/appointments/:id/status', vetController.updateAppointmentStatus);
+
 module.exports = router;

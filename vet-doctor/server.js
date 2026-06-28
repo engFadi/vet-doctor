@@ -11,6 +11,7 @@ const session = require('express-session');
 const db = require('./src/models');
 const flash = require('./src/middleware/flash');
 const { attachUser } = require('./src/middleware/auth');
+const unreadNotifications = require('./src/middleware/notifications');
 const indexRoutes = require('./src/routes/indexRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const registerRoutes = require('./src/routes/registerRoutes');
@@ -18,9 +19,11 @@ const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const vetRoutes = require('./src/routes/vetRoutes');
 const clientRoutes = require('./src/routes/clientRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
 const { seedAdmin } = require('./seeders/adminSeeder');
 const { seedServices } = require('./seeders/serviceSeeder');
 const emergencyService = require('./src/services/emergencyService');
+const reminderService = require('./src/services/reminderService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,6 +59,7 @@ app.use(
 );
 app.use(flash);
 app.use(attachUser);
+app.use(unreadNotifications);
 
 // Routes (MVC: routes -> controllers -> views)
 app.use('/', authRoutes);
@@ -64,6 +68,7 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/admin', adminRoutes);
 app.use('/vet', vetRoutes);
 app.use('/client', clientRoutes);
+app.use('/notifications', notificationRoutes);
 app.use('/', indexRoutes);
 
 // 404 handler
@@ -90,7 +95,7 @@ async function start() {
       console.log(`Vet Doctor server running at http://localhost:${PORT}`);
     });
 
-    // Periodically reassign/escalate emergencies past their ack deadline (SR3.11).
+    // Background sweep: emergency timeouts (SR3.11) + appointment reminders (SR7.5-7.6).
     setInterval(() => {
       emergencyService
         .processExpiredAcknowledgements()
@@ -98,6 +103,13 @@ async function start() {
           if (count > 0) console.log(`Processed ${count} expired emergency acknowledgement(s).`);
         })
         .catch((err) => console.error('Emergency sweep failed:', err.message));
+
+      reminderService
+        .processReminders()
+        .then((count) => {
+          if (count > 0) console.log(`Sent ${count} appointment reminder(s).`);
+        })
+        .catch((err) => console.error('Reminder sweep failed:', err.message));
     }, 60 * 1000);
   } catch (error) {
     console.error('Unable to start server - database error:', error.message);

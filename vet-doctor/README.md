@@ -179,7 +179,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   deadline, and reassign or escalate if they do not respond (SR3.9–SR3.11, Use Case: Acknowledge
   Emergency Booking).
 
-- [ ] **Task 11 — Appointment status tracking and notifications**
+- [x] **Task 11 — Appointment status tracking and notifications**
   Track the appointment lifecycle (Confirmed → En Route → In Progress → Completed), let clients
   follow status, and add the mocked Notification Service for confirmations and reminders
   (SR5.5–SR5.6, SR7.1–SR7.6).

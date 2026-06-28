@@ -15,6 +15,8 @@ const {
   APPOINTMENT_STATUS,
 } = require('../models/enums');
 
+const notificationService = require('./notificationService');
+
 const { Op } = db.Sequelize;
 const Appointment = db.Appointment;
 const Slot = db.AvailabilitySlot;
@@ -80,7 +82,14 @@ async function acknowledge(appointment) {
   appointment.acknowledgementDeadline = null;
   appointment.status = APPOINTMENT_STATUS.VETERINARIAN_ASSIGNED;
   await appointment.save();
-  // Client notification is delivered by the Notification Service (Task 11).
+
+  // Confirm to the client that a veterinarian has accepted (use case step 5).
+  await notificationService.notify({
+    userId: appointment.clientId,
+    subject: 'Emergency accepted',
+    body: 'A veterinarian has acknowledged your emergency visit and is assigned.',
+    appointmentId: appointment.id,
+  });
   return appointment;
 }
 
@@ -102,6 +111,20 @@ async function reassign(appointment) {
     slot.status = AVAILABILITY_STATUS.BOOKED;
     await slot.save();
 
+    // Notify the client and the newly assigned veterinarian (E1).
+    await notificationService.notify({
+      userId: appointment.clientId,
+      subject: 'Emergency reassigned',
+      body: 'Your emergency visit has been reassigned to another available veterinarian.',
+      appointmentId: appointment.id,
+    });
+    await notificationService.notify({
+      userId: slot.veterinarianId,
+      subject: 'Emergency assigned to you',
+      body: 'An emergency visit has been assigned to you. Please acknowledge it promptly.',
+      appointmentId: appointment.id,
+    });
+
     return { reassigned: true, veterinarianId: slot.veterinarianId };
   }
 
@@ -110,6 +133,14 @@ async function reassign(appointment) {
   appointment.acknowledgementDeadline = null;
   appointment.status = APPOINTMENT_STATUS.ESCALATED;
   await appointment.save();
+
+  // Notify the client; administrators see escalations on their dashboard.
+  await notificationService.notify({
+    userId: appointment.clientId,
+    subject: 'No veterinarian currently available',
+    body: 'No veterinarian is currently available for your emergency. It has been escalated to the administrator.',
+    appointmentId: appointment.id,
+  });
 
   return { reassigned: false };
 }

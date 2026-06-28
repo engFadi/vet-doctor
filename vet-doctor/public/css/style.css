@@ -83,6 +83,50 @@ body {
   font-size: 0.9rem;
 }
 
+.notif-badge {
+  display: inline-block;
+  background: #c0392b;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Notification inbox */
+.notif-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notif-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.notif-unread {
+  border-left: 4px solid var(--primary);
+  background: #f3faf7;
+}
+
+.notif-subject {
+  font-weight: 600;
+}
+
+.notif-body {
+  color: var(--text);
+  margin-top: 0.2rem;
+}
+
+.notif-time {
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
 .nav-logout {
   margin: 0;
 }

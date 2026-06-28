@@ -7,11 +7,14 @@
 const db = require('../models');
 const { AVAILABILITY_STATUS, APPOINTMENT_STATUS } = require('../models/enums');
 const emergencyService = require('../services/emergencyService');
+const notificationService = require('../services/notificationService');
+const { allowedTransitions, statusLabel } = require('../utils/appointmentStatus');
 
 const Slot = db.AvailabilitySlot;
 const Appointment = db.Appointment;
 const SLOTS_LIST = '/vet/slots';
 const EMERGENCIES_LIST = '/vet/emergencies';
+const APPOINTMENTS_LIST = '/vet/appointments';
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -242,6 +245,71 @@ exports.declineEmergency = async (req, res, next) => {
         : 'You declined the emergency. No other veterinarian was available, so it has been escalated to the administrator.'
     );
     return res.redirect(EMERGENCIES_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Assigned appointments + status tracking (SR5.1-5.2, SR5.5-5.6)
+// ----------------------------------------------------------------------
+
+// GET /vet/appointments - the veterinarian's assigned appointments
+exports.listAppointments = async (req, res, next) => {
+  try {
+    const appointments = await Appointment.findAll({
+      where: { veterinarianId: req.session.user.id },
+      include: [
+        { model: db.Service, as: 'service' },
+        { model: db.Animal, as: 'animal' },
+        { model: db.User, as: 'client', attributes: ['id', 'fullName', 'phoneNumber'] },
+      ],
+      order: [['appointmentDateTime', 'ASC']], // SR5.1
+    });
+
+    res.render('pages/vet-appointments', {
+      title: 'My Appointments - Vet Doctor',
+      appointments,
+      statuses: APPOINTMENT_STATUS,
+      allowedTransitions,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /vet/appointments/:id/status - advance the appointment status (SR5.5)
+exports.updateAppointmentStatus = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, veterinarianId: req.session.user.id },
+    });
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+
+    const nextStatus = (req.body.status || '').trim();
+    const allowed = allowedTransitions(appointment);
+    if (!allowed.includes(nextStatus)) {
+      req.flash('error', 'That status change is not allowed.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+
+    await appointment.updateStatus(nextStatus);
+
+    // Notify the client of the status change (SR5.6 / SR7.4).
+    await notificationService.notify({
+      userId: appointment.clientId,
+      subject: `Appointment ${statusLabel(nextStatus)}`,
+      body: `Your appointment on ${new Date(
+        appointment.appointmentDateTime
+      ).toLocaleString()} is now "${statusLabel(nextStatus)}".`,
+      appointmentId: appointment.id,
+    });
+
+    req.flash('success', `Appointment marked as ${statusLabel(nextStatus)}.`);
+    return res.redirect(APPOINTMENTS_LIST);
   } catch (err) {
     return next(err);
   }

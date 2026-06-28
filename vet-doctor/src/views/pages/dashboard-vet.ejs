@@ -37,6 +37,16 @@
     </article>
 
     <article class="card">
+      <h3>My appointments</h3>
+      <p>View assigned visits and update their status as the visit progresses.</p>
+      <% if (user.isApproved) { %>
+        <a class="btn btn-primary" href="/vet/appointments">View appointments</a>
+      <% } else { %>
+        <p class="muted">Available once your account is approved.</p>
+      <% } %>
+    </article>
+
+    <article class="card">
       <h3>Emergency requests
         <% if (typeof emergencyCount !== 'undefined' && emergencyCount > 0) { %>
           <span class="badge badge-danger"><%= emergencyCount %></span>
