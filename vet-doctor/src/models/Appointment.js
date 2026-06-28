@@ -32,6 +32,8 @@ module.exports = (sequelize) => {
       },
       followUpDate: { type: DataTypes.DATEONLY, allowNull: true },
       acknowledgedAt: { type: DataTypes.DATE, allowNull: true },
+      // Emergency acknowledgement deadline (SR3.11). Null for non-emergencies.
+      acknowledgementDeadline: { type: DataTypes.DATE, allowNull: true },
     },
     {
       tableName: 'appointments',

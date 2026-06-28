@@ -17,6 +17,10 @@
       <span class="stat-number"><%= stats.pendingVetCount %></span>
       <span class="stat-label">Veterinarians pending approval</span>
     </a>
+    <a class="stat-card stat-card-link" href="/admin/emergencies">
+      <span class="stat-number"><%= stats.escalatedCount %></span>
+      <span class="stat-label">Escalated emergencies</span>
+    </a>
   </div>
 
   <div class="card-grid">
@@ -31,6 +35,12 @@
       <p>Update the base price, duration, and description for each service type.</p>
       <a class="btn btn-primary" href="/admin/services">Manage service pricing</a>
     </article>
+    <article class="card">
+      <h3>Escalated emergencies</h3>
+      <p>Review emergencies that could not be auto-assigned and retry assignment.</p>
+      <a class="btn btn-primary" href="/admin/emergencies">View escalated emergencies</a>
+    </article>
+
     <article class="card">
       <h3>More tools</h3>
       <p>User management, review moderation, and reports are added in the upcoming tasks.</p>

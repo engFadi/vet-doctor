@@ -20,6 +20,7 @@ const vetRoutes = require('./src/routes/vetRoutes');
 const clientRoutes = require('./src/routes/clientRoutes');
 const { seedAdmin } = require('./seeders/adminSeeder');
 const { seedServices } = require('./seeders/serviceSeeder');
+const emergencyService = require('./src/services/emergencyService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -88,6 +89,16 @@ async function start() {
     app.listen(PORT, () => {
       console.log(`Vet Doctor server running at http://localhost:${PORT}`);
     });
+
+    // Periodically reassign/escalate emergencies past their ack deadline (SR3.11).
+    setInterval(() => {
+      emergencyService
+        .processExpiredAcknowledgements()
+        .then((count) => {
+          if (count > 0) console.log(`Processed ${count} expired emergency acknowledgement(s).`);
+        })
+        .catch((err) => console.error('Emergency sweep failed:', err.message));
+    }, 60 * 1000);
   } catch (error) {
     console.error('Unable to start server - database error:', error.message);
     process.exit(1);

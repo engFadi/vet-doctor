@@ -19,4 +19,9 @@ router.post('/slots/:id/unavailable', vetController.markUnavailable);
 router.post('/slots/:id/available', vetController.markAvailable);
 router.post('/slots/:id/delete', vetController.deleteSlot);
 
+// Emergency acknowledgement
+router.get('/emergencies', vetController.listEmergencies);
+router.post('/emergencies/:id/acknowledge', vetController.acknowledgeEmergency);
+router.post('/emergencies/:id/decline', vetController.declineEmergency);
+
 module.exports = router;

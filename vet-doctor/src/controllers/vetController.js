@@ -5,10 +5,13 @@
 // This controller grows with later tasks (assigned appointments, records).
 // ----------------------------------------------------------------------
 const db = require('../models');
-const { AVAILABILITY_STATUS } = require('../models/enums');
+const { AVAILABILITY_STATUS, APPOINTMENT_STATUS } = require('../models/enums');
+const emergencyService = require('../services/emergencyService');
 
 const Slot = db.AvailabilitySlot;
+const Appointment = db.Appointment;
 const SLOTS_LIST = '/vet/slots';
+const EMERGENCIES_LIST = '/vet/emergencies';
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -157,6 +160,88 @@ exports.deleteSlot = async (req, res, next) => {
     await slot.destroy();
     req.flash('success', 'Slot removed.');
     return res.redirect(SLOTS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Emergency acknowledgement (Acknowledge Emergency Booking, SR3.10-3.11)
+// ----------------------------------------------------------------------
+
+// Load an emergency appointment assigned to this vet that still awaits ack.
+function findOwnPendingEmergency(req, id) {
+  return Appointment.findOne({
+    where: {
+      id,
+      veterinarianId: req.session.user.id,
+      priorityFlag: true,
+      acknowledgedAt: null,
+      status: emergencyService.AWAITING_ACK,
+    },
+  });
+}
+
+// GET /vet/emergencies - emergencies awaiting this vet's acknowledgement
+exports.listEmergencies = async (req, res, next) => {
+  try {
+    const emergencies = await Appointment.findAll({
+      where: {
+        veterinarianId: req.session.user.id,
+        priorityFlag: true,
+        acknowledgedAt: null,
+        status: emergencyService.AWAITING_ACK,
+      },
+      include: [
+        { model: db.Service, as: 'service' },
+        { model: db.Animal, as: 'animal' },
+        { model: db.User, as: 'client', attributes: ['id', 'fullName', 'phoneNumber'] },
+      ],
+      order: [['acknowledgementDeadline', 'ASC']],
+    });
+
+    res.render('pages/vet-emergencies', {
+      title: 'Emergency Requests - Vet Doctor',
+      emergencies,
+      now: new Date(),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /vet/emergencies/:id/acknowledge (use case step 3-4)
+exports.acknowledgeEmergency = async (req, res, next) => {
+  try {
+    const appointment = await findOwnPendingEmergency(req, req.params.id);
+    if (!appointment) {
+      req.flash('error', 'Emergency request not found or no longer awaiting your response.');
+      return res.redirect(EMERGENCIES_LIST);
+    }
+    await emergencyService.acknowledge(appointment);
+    req.flash('success', 'Emergency acknowledged. The client has been notified that you are assigned.');
+    return res.redirect(EMERGENCIES_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /vet/emergencies/:id/decline (A1 -> immediate reassignment)
+exports.declineEmergency = async (req, res, next) => {
+  try {
+    const appointment = await findOwnPendingEmergency(req, req.params.id);
+    if (!appointment) {
+      req.flash('error', 'Emergency request not found or no longer awaiting your response.');
+      return res.redirect(EMERGENCIES_LIST);
+    }
+    const result = await emergencyService.reassign(appointment);
+    req.flash(
+      'success',
+      result.reassigned
+        ? 'You declined the emergency. It has been reassigned to another veterinarian.'
+        : 'You declined the emergency. No other veterinarian was available, so it has been escalated to the administrator.'
+    );
+    return res.redirect(EMERGENCIES_LIST);
   } catch (err) {
     return next(err);
   }

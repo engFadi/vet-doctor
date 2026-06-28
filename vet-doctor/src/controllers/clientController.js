@@ -12,6 +12,7 @@ const {
   AVAILABILITY_STATUS,
   APPOINTMENT_STATUS,
 } = require('../models/enums');
+const emergencyService = require('../services/emergencyService');
 
 const Animal = db.Animal;
 const Service = db.Service;
@@ -364,6 +365,8 @@ exports.confirmBooking = async (req, res, next) => {
       reasonForVisit: form.reason,
       status: APPOINTMENT_STATUS.REQUESTED,
       priorityFlag: isEmergency, // SR3.9
+      // Emergencies must be acknowledged within the deadline (SR3.10-3.11).
+      acknowledgementDeadline: isEmergency ? emergencyService.newDeadline() : null,
     });
 
     await slot.markBooked(); // SR4.4 / SR5.4

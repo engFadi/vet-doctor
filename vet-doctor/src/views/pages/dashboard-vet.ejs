@@ -37,9 +37,23 @@
     </article>
 
     <article class="card">
+      <h3>Emergency requests
+        <% if (typeof emergencyCount !== 'undefined' && emergencyCount > 0) { %>
+          <span class="badge badge-danger"><%= emergencyCount %></span>
+        <% } %>
+      </h3>
+      <p>Acknowledge or decline high-priority emergency visits assigned to you.</p>
+      <% if (user.isApproved) { %>
+        <a class="btn btn-primary" href="/vet/emergencies">View emergencies</a>
+      <% } else { %>
+        <p class="muted">Available once your account is approved.</p>
+      <% } %>
+    </article>
+
+    <article class="card">
       <h3>What's next</h3>
-      <p>Assigned appointments, emergency acknowledgement, and medical records are added in the
-         upcoming tasks.</p>
+      <p>Assigned appointments status tracking and medical records are added in the upcoming
+         tasks.</p>
     </article>
   </div>
 </section>

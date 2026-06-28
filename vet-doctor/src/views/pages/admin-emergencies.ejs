@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Escalated emergencies</h1>
+  <p class="lead">Emergencies that could not be auto-assigned because no veterinarian was available.</p>
+
+  <% if (emergencies.length === 0) { %>
+    <div class="card">
+      <p class="muted">There are no escalated emergencies.</p>
+    </div>
+  <% } else { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Client</th>
+          <th>Animal</th>
+          <th>Location</th>
+          <th>Reason</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% emergencies.forEach(function (appt) { %>
+          <tr>
+            <td><%= new Date(appt.appointmentDateTime).toLocaleString() %></td>
+            <td><%= appt.client ? appt.client.fullName : '-' %>
+              <% if (appt.client && appt.client.phoneNumber) { %><br><span class="muted"><%= appt.client.phoneNumber %></span><% } %></td>
+            <td><%= appt.animal ? appt.animal.name : '-' %></td>
+            <td><%= appt.visitLocation %></td>
+            <td><%= appt.reasonForVisit %></td>
+            <td>
+              <form action="/admin/emergencies/<%= appt.id %>/reassign" method="POST">
+                <button type="submit" class="btn btn-small btn-primary">Retry assignment</button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

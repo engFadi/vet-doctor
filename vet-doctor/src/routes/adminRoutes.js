@@ -21,4 +21,8 @@ router.post('/vets/:id/reject', adminController.rejectVet);
 router.get('/services', adminController.listServices);
 router.post('/services/:id', adminController.updateService);
 
+// Escalated emergencies
+router.get('/emergencies', adminController.listEscalatedEmergencies);
+router.post('/emergencies/:id/reassign', adminController.retryReassign);
+
 module.exports = router;

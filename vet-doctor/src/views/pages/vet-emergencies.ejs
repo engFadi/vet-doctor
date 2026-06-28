@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Emergency requests</h1>
+  <p class="lead">Acknowledge an emergency to confirm you are taking it, or decline to reassign it.</p>
+
+  <% if (emergencies.length === 0) { %>
+    <div class="card">
+      <p class="muted">You have no emergency requests awaiting acknowledgement.</p>
+    </div>
+  <% } else { %>
+    <div class="card-grid">
+      <% emergencies.forEach(function (appt) { %>
+        <article class="card emergency-card">
+          <h3><%= appt.service ? appt.service.name : 'Emergency Visit' %>
+            <span class="badge badge-danger">High priority</span>
+          </h3>
+          <ul class="detail-list">
+            <li><strong>When:</strong> <%= new Date(appt.appointmentDateTime).toLocaleString() %></li>
+            <li><strong>Client:</strong> <%= appt.client ? appt.client.fullName : '-' %>
+              <% if (appt.client && appt.client.phoneNumber) { %>(<%= appt.client.phoneNumber %>)<% } %></li>
+            <li><strong>Animal:</strong> <%= appt.animal ? appt.animal.name + ' (' + appt.animal.species + ')' : '-' %></li>
+            <li><strong>Location:</strong> <%= appt.visitLocation %></li>
+            <li><strong>Reason:</strong> <%= appt.reasonForVisit %></li>
+            <% if (appt.acknowledgementDeadline) { %>
+              <li><strong>Respond by:</strong>
+                <%= new Date(appt.acknowledgementDeadline).toLocaleTimeString() %></li>
+            <% } %>
+          </ul>
+          <div class="action-row">
+            <form action="/vet/emergencies/<%= appt.id %>/acknowledge" method="POST">
+              <button type="submit" class="btn btn-primary">Acknowledge</button>
+            </form>
+            <form action="/vet/emergencies/<%= appt.id %>/decline" method="POST"
+                  onsubmit="return confirm('Decline and reassign this emergency?');">
+              <button type="submit" class="btn btn-danger">Decline</button>
+            </form>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

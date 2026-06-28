@@ -5,12 +5,15 @@
 // rejects them (SR8.5-SR8.7). Approved vets become ACTIVE and can log in.
 // ----------------------------------------------------------------------
 const db = require('../models');
-const { ROLES, ACCOUNT_STATUS } = require('../models/enums');
+const { ROLES, ACCOUNT_STATUS, APPOINTMENT_STATUS } = require('../models/enums');
+const emergencyService = require('../services/emergencyService');
 
 const User = db.User;
 const Service = db.Service;
+const Appointment = db.Appointment;
 const PENDING_LIST = '/admin/vets/pending';
 const SERVICES_LIST = '/admin/services';
+const EMERGENCIES_LIST = '/admin/emergencies';
 
 // Load a veterinarian by id (with the password hash so .save() validates).
 async function findVet(id) {
@@ -139,6 +142,55 @@ exports.updateService = async (req, res, next) => {
 
     req.flash('success', `Updated pricing for ${service.name}.`);
     return res.redirect(SERVICES_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Escalated emergencies (Acknowledge Emergency Booking, E2)
+// ----------------------------------------------------------------------
+
+// GET /admin/emergencies - emergencies that could not be auto-assigned
+exports.listEscalatedEmergencies = async (req, res, next) => {
+  try {
+    const emergencies = await Appointment.findAll({
+      where: { status: APPOINTMENT_STATUS.ESCALATED },
+      include: [
+        { model: Service, as: 'service' },
+        { model: db.Animal, as: 'animal' },
+        { model: User, as: 'client', attributes: ['id', 'fullName', 'phoneNumber'] },
+      ],
+      order: [['appointmentDateTime', 'ASC']],
+    });
+
+    res.render('pages/admin-emergencies', {
+      title: 'Escalated Emergencies - Vet Doctor',
+      emergencies,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /admin/emergencies/:id/reassign - retry assigning a qualified vet
+exports.retryReassign = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, status: APPOINTMENT_STATUS.ESCALATED },
+    });
+    if (!appointment) {
+      req.flash('error', 'Escalated emergency not found.');
+      return res.redirect(EMERGENCIES_LIST);
+    }
+    const result = await emergencyService.reassign(appointment);
+    req.flash(
+      'success',
+      result.reassigned
+        ? 'A veterinarian was found and the emergency has been reassigned.'
+        : 'Still no veterinarian is available for that time. The emergency remains escalated.'
+    );
+    return res.redirect(EMERGENCIES_LIST);
   } catch (err) {
     return next(err);
   }

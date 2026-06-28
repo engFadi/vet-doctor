@@ -174,7 +174,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   veterinarian (or auto-assign a matching one), creating the appointment and notifying both parties
   (SR3.1–SR3.8, UR3, Use Case: Book Appointment).
 
-- [ ] **Task 10 — Emergency booking acknowledgement and reassignment logic**
+- [x] **Task 10 — Emergency booking acknowledgement and reassignment logic**
   Flag emergency visits as high priority, require the assigned vet to acknowledge within the
   deadline, and reassign or escalate if they do not respond (SR3.9–SR3.11, Use Case: Acknowledge
   Emergency Booking).
