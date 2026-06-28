@@ -18,7 +18,15 @@ const ACCOUNT_STATUS = {
   SUSPENDED: 'SUSPENDED',
 };
 
+// ServiceType enumeration (the three service types from the report).
+const SERVICE_TYPE = {
+  ROUTINE_CHECK_UP: 'ROUTINE_CHECK_UP',
+  EMERGENCY_VISIT: 'EMERGENCY_VISIT',
+  FARM_VISIT: 'FARM_VISIT',
+};
+
 module.exports = {
   ROLES,
   ACCOUNT_STATUS,
+  SERVICE_TYPE,
 };

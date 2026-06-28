@@ -17,6 +17,7 @@ const registerRoutes = require('./src/routes/registerRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const { seedAdmin } = require('./seeders/adminSeeder');
+const { seedServices } = require('./seeders/serviceSeeder');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,9 @@ const PORT = process.env.PORT || 3000;
 // View engine: EJS, with views stored under src/views
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
+
+// Display currency, available to every view as `currency`.
+app.locals.currency = process.env.CURRENCY || 'ILS';
 
 // Body parsers (ready for forms in later tasks)
 app.use(express.urlencoded({ extended: true }));
@@ -72,6 +76,7 @@ async function start() {
     console.log('Database synced.');
 
     await seedAdmin();
+    await seedServices();
 
     app.listen(PORT, () => {
       console.log(`Vet Doctor server running at http://localhost:${PORT}`);

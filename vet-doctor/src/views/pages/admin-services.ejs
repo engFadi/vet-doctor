@@ -1,0 +1,34 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Service pricing</h1>
+  <p class="lead">Update the base price, estimated duration, and description for each service type.</p>
+
+  <div class="card-grid">
+    <% services.forEach(function (service) { %>
+      <article class="card">
+        <h3><%= service.name %></h3>
+        <p class="muted"><%= service.serviceType %></p>
+
+        <form action="/admin/services/<%= service.id %>" method="POST" class="form">
+          <label for="basePrice-<%= service.id %>">Base price (<%= currency %>)</label>
+          <input type="number" step="0.01" min="0" id="basePrice-<%= service.id %>"
+                 name="basePrice" value="<%= Number(service.basePrice).toFixed(2) %>" required />
+
+          <label for="duration-<%= service.id %>">Estimated duration (minutes)</label>
+          <input type="number" min="0" id="duration-<%= service.id %>"
+                 name="estimatedDuration" value="<%= service.estimatedDuration != null ? service.estimatedDuration : '' %>" />
+
+          <label for="description-<%= service.id %>">Description</label>
+          <textarea id="description-<%= service.id %>" name="description" rows="3"><%= service.description || '' %></textarea>
+
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </form>
+      </article>
+    <% }); %>
+  </div>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

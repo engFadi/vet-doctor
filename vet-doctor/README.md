@@ -157,7 +157,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Let the administrator review pending veterinarian registrations, verify credentials, and approve
   or reject them so approved vets can log in (SR8.5–SR8.7).
 
-- [ ] **Task 6 — Services and service pricing**
+- [x] **Task 6 — Services and service pricing**
   Define the three service types (Routine Check-Up, Emergency Visit, Farm Visit) with base prices,
   and let the admin update service pricing (SR3.1, SR6.4, SR8.15).
 

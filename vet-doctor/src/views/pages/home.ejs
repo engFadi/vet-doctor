@@ -26,6 +26,11 @@
         <article class="card">
           <h3><%= service.name %></h3>
           <p><%= service.description %></p>
+          <p class="price"><strong><%= Number(service.basePrice).toFixed(2) %> <%= currency %></strong>
+            <% if (service.estimatedDuration) { %>
+              <span class="muted">&middot; ~<%= service.estimatedDuration %> min</span>
+            <% } %>
+          </p>
         </article>
       <% }); %>
     </div>

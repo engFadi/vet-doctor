@@ -17,4 +17,8 @@ router.get('/vets/pending', adminController.vetApprovals);
 router.post('/vets/:id/approve', adminController.approveVet);
 router.post('/vets/:id/reject', adminController.rejectVet);
 
+// Service pricing management
+router.get('/services', adminController.listServices);
+router.post('/services/:id', adminController.updateService);
+
 module.exports = router;

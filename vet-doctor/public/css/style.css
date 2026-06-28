@@ -284,6 +284,11 @@ body {
   color: var(--primary);
 }
 
+.price {
+  margin-bottom: 0;
+  color: var(--primary-dark);
+}
+
 /* Dashboard */
 .dashboard {
   padding: 2rem 0;
