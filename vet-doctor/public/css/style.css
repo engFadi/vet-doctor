@@ -225,6 +225,35 @@ body {
   background: var(--bg);
 }
 
+.btn-danger {
+  background: #c0392b;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #a3261c;
+}
+
+.action-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.action-row form {
+  margin: 0;
+}
+
+.stat-card-link {
+  text-decoration: none;
+  display: block;
+  transition: box-shadow 0.15s ease;
+}
+
+.stat-card-link:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
 /* Services */
 .services {
   padding: 2rem 0 3rem;

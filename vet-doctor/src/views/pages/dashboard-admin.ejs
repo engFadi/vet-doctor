@@ -13,17 +13,23 @@
       <span class="stat-number"><%= stats.vetCount %></span>
       <span class="stat-label">Registered veterinarians</span>
     </article>
-    <article class="stat-card">
+    <a class="stat-card stat-card-link" href="/admin/vets/pending">
       <span class="stat-number"><%= stats.pendingVetCount %></span>
       <span class="stat-label">Veterinarians pending approval</span>
-    </article>
+    </a>
   </div>
 
   <div class="card-grid">
     <article class="card">
-      <h3>Operations</h3>
-      <p>Approve veterinarians, manage user accounts, configure service pricing, moderate reviews,
-         and generate reports. These tools are added in the upcoming tasks.</p>
+      <h3>Veterinarian approvals</h3>
+      <p>Review pending veterinarian registrations, verify their credentials, and approve or reject
+         them.</p>
+      <a class="btn btn-primary" href="/admin/vets/pending">Review pending veterinarians</a>
+    </article>
+    <article class="card">
+      <h3>More tools</h3>
+      <p>User management, service pricing, review moderation, and reports are added in the upcoming
+         tasks.</p>
     </article>
   </div>
 </section>

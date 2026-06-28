@@ -15,6 +15,7 @@ const indexRoutes = require('./src/routes/indexRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const registerRoutes = require('./src/routes/registerRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
 const { seedAdmin } = require('./seeders/adminSeeder');
 
 const app = express();
@@ -50,6 +51,7 @@ app.use(attachUser);
 app.use('/', authRoutes);
 app.use('/register', registerRoutes);
 app.use('/dashboard', dashboardRoutes);
+app.use('/admin', adminRoutes);
 app.use('/', indexRoutes);
 
 // 404 handler

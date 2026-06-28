@@ -153,7 +153,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Seed the single pre-configured administrator and route each user to a role-specific dashboard
   after login, with live admin metrics (SR1.8, SR8.1–SR8.2).
 
-- [ ] **Task 5 — Veterinarian approval workflow**
+- [x] **Task 5 — Veterinarian approval workflow**
   Let the administrator review pending veterinarian registrations, verify credentials, and approve
   or reject them so approved vets can log in (SR8.5–SR8.7).
 

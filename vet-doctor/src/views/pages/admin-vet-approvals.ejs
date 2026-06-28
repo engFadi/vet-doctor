@@ -1,0 +1,44 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Veterinarian approvals</h1>
+  <p class="lead">Review credentials and approve or reject pending veterinarian registrations.</p>
+
+  <% if (pendingVets.length === 0) { %>
+    <div class="card">
+      <p>There are no veterinarian registrations awaiting approval.</p>
+    </div>
+  <% } else { %>
+    <div class="card-grid">
+      <% pendingVets.forEach(function (vet) { %>
+        <article class="card">
+          <h3>Dr. <%= vet.fullName %></h3>
+          <ul class="detail-list">
+            <li><strong>Email:</strong> <%= vet.email %></li>
+            <li><strong>Phone:</strong> <%= vet.phoneNumber || '-' %></li>
+            <li><strong>License #:</strong> <%= vet.licenseNumber || '-' %></li>
+            <li><strong>Specialization:</strong> <%= vet.specialization || '-' %></li>
+            <li><strong>Service area:</strong> <%= vet.serviceArea || '-' %></li>
+            <li><strong>Experience:</strong>
+              <%= vet.yearsOfExperience != null ? vet.yearsOfExperience + ' years' : '-' %></li>
+            <li><strong>Registered:</strong>
+              <%= new Date(vet.registrationDate).toLocaleDateString() %></li>
+          </ul>
+          <div class="action-row">
+            <form action="/admin/vets/<%= vet.id %>/approve" method="POST">
+              <button type="submit" class="btn btn-primary">Approve</button>
+            </form>
+            <form action="/admin/vets/<%= vet.id %>/reject" method="POST"
+                  onsubmit="return confirm('Reject this veterinarian registration?');">
+              <button type="submit" class="btn btn-danger">Reject</button>
+            </form>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>
