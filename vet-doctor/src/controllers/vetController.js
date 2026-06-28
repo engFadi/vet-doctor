@@ -12,6 +12,8 @@ const { allowedTransitions, statusLabel } = require('../utils/appointmentStatus'
 
 const Slot = db.AvailabilitySlot;
 const Appointment = db.Appointment;
+const MedicalRecord = db.MedicalRecord;
+const Prescription = db.Prescription;
 const SLOTS_LIST = '/vet/slots';
 const EMERGENCIES_LIST = '/vet/emergencies';
 const APPOINTMENTS_LIST = '/vet/appointments';
@@ -310,6 +312,140 @@ exports.updateAppointmentStatus = async (req, res, next) => {
 
     req.flash('success', `Appointment marked as ${statusLabel(nextStatus)}.`);
     return res.redirect(APPOINTMENTS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Medical records & prescriptions (SR5.7-SR5.14)
+// ----------------------------------------------------------------------
+
+// Load an appointment assigned to this vet, with its record + prescriptions.
+function findOwnAppointmentWithRecord(req, id) {
+  return Appointment.findOne({
+    where: { id, veterinarianId: req.session.user.id }, // SR5.13
+    include: [
+      { model: db.Service, as: 'service' },
+      { model: db.Animal, as: 'animal' },
+      { model: db.User, as: 'client', attributes: ['id', 'fullName'] },
+      {
+        model: MedicalRecord,
+        as: 'medicalRecord',
+        include: [{ model: Prescription, as: 'prescriptions' }],
+      },
+    ],
+  });
+}
+
+// GET /vet/appointments/:id/record - record form / existing record
+exports.showRecordForm = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithRecord(req, req.params.id);
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (appointment.status !== APPOINTMENT_STATUS.COMPLETED) {
+      req.flash('error', 'A medical record can only be added after the visit is completed.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    res.render('pages/vet-record', {
+      title: 'Medical Record - Vet Doctor',
+      appointment,
+      record: appointment.medicalRecord,
+      maxNotes: MedicalRecord.MAX_NOTES,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /vet/appointments/:id/record - create the medical record (SR5.7-5.12, 5.14)
+exports.createRecord = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithRecord(req, req.params.id);
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (appointment.status !== APPOINTMENT_STATUS.COMPLETED) {
+      req.flash('error', 'A medical record can only be added after the visit is completed.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (appointment.medicalRecord) {
+      req.flash('error', 'A medical record already exists for this appointment.');
+      return res.redirect(`/vet/appointments/${appointment.id}/record`);
+    }
+
+    const diagnosis = (req.body.diagnosis || '').trim();
+    const notes = (req.body.notes || '').trim();
+    const followUpDate = (req.body.followUpDate || '').trim();
+
+    if (notes.length > MedicalRecord.MAX_NOTES) {
+      req.flash('error', `Post-visit notes must be ${MedicalRecord.MAX_NOTES} characters or fewer.`);
+      return res.redirect(`/vet/appointments/${appointment.id}/record`);
+    }
+
+    await MedicalRecord.create({
+      appointmentId: appointment.id,
+      animalId: appointment.animalId, // SR5.12
+      veterinarianId: req.session.user.id,
+      visitDate: todayISO(),
+      diagnosis: diagnosis || null,
+      notes: notes || null,
+      attachedFile: req.file ? req.file.filename : null, // SR5.10
+    });
+
+    // Optional follow-up date (SR5.14).
+    if (followUpDate) {
+      await appointment.flagForFollowUp(followUpDate);
+    }
+
+    // Notify the client that their visit record is available.
+    await notificationService.notify({
+      userId: appointment.clientId,
+      subject: 'Visit record added',
+      body: `Dr. ${req.session.user.fullName} added a medical record for your visit.`,
+      appointmentId: appointment.id,
+    });
+
+    req.flash('success', 'Medical record saved.');
+    return res.redirect(`/vet/appointments/${appointment.id}/record`);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /vet/records/:recordId/prescriptions - add a prescription (SR5.9)
+exports.addPrescription = async (req, res, next) => {
+  try {
+    const record = await MedicalRecord.findOne({
+      where: { id: req.params.recordId, veterinarianId: req.session.user.id }, // SR5.13
+    });
+    if (!record) {
+      req.flash('error', 'Medical record not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+
+    const medicationName = (req.body.medicationName || '').trim();
+    if (!medicationName) {
+      req.flash('error', 'Medication name is required.');
+      return res.redirect(`/vet/appointments/${record.appointmentId}/record`);
+    }
+
+    await Prescription.create({
+      medicalRecordId: record.id,
+      medicationName,
+      dosage: (req.body.dosage || '').trim() || null,
+      frequency: (req.body.frequency || '').trim() || null,
+      duration: (req.body.duration || '').trim() || null,
+      instructions: (req.body.instructions || '').trim() || null,
+      issuedDate: todayISO(),
+    });
+
+    req.flash('success', 'Prescription added.');
+    return res.redirect(`/vet/appointments/${record.appointmentId}/record`);
   } catch (err) {
     return next(err);
   }

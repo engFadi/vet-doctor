@@ -184,7 +184,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   follow status, and add the mocked Notification Service for confirmations and reminders
   (SR5.5–SR5.6, SR7.1–SR7.6).
 
-- [ ] **Task 12 — Medical records and prescriptions**
+- [x] **Task 12 — Medical records and prescriptions**
   Let veterinarians add post-visit notes, medical records, and prescriptions for completed visits,
   linked to the relevant animal (SR5.7–SR5.12).
 

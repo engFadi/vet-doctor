@@ -423,6 +423,40 @@ exports.listAppointments = async (req, res, next) => {
   }
 };
 
+// GET /client/appointments/:id/record - read-only medical record + prescriptions
+exports.viewRecord = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, clientId: req.session.user.id },
+      include: [
+        { model: Service, as: 'service' },
+        { model: Animal, as: 'animal' },
+        { model: User, as: 'veterinarian', attributes: ['id', 'fullName', 'specialization'] },
+        {
+          model: db.MedicalRecord,
+          as: 'medicalRecord',
+          include: [{ model: db.Prescription, as: 'prescriptions' }],
+        },
+      ],
+    });
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (!appointment.medicalRecord) {
+      req.flash('error', 'No medical record is available for this appointment yet.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    res.render('pages/client-record', {
+      title: 'Visit Record - Vet Doctor',
+      appointment,
+      record: appointment.medicalRecord,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // POST /client/appointments/:id/cancel - cancel before the scheduled time (SR3.12)
 exports.cancelAppointment = async (req, res, next) => {
   try {

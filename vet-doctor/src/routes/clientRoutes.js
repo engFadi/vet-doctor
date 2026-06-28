@@ -26,6 +26,7 @@ router.post('/book/confirm', clientController.confirmBooking);
 
 // Appointments
 router.get('/appointments', clientController.listAppointments);
+router.get('/appointments/:id/record', clientController.viewRecord);
 router.post('/appointments/:id/cancel', clientController.cancelAppointment);
 
 module.exports = router;

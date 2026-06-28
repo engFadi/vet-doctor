@@ -44,20 +44,22 @@
             </td>
             <td>
               <% var next = allowedTransitions(appt); %>
-              <% if (next.length === 0) { %>
-                <span class="muted">-</span>
-              <% } else { %>
-                <div class="action-row">
-                  <% next.forEach(function (s) { %>
-                    <form action="/vet/appointments/<%= appt.id %>/status" method="POST">
-                      <input type="hidden" name="status" value="<%= s %>" />
-                      <button type="submit" class="btn btn-small btn-primary">
-                        Mark <%= statusLabel(s) %>
-                      </button>
-                    </form>
-                  <% }); %>
-                </div>
-              <% } %>
+              <div class="action-row">
+                <% next.forEach(function (s) { %>
+                  <form action="/vet/appointments/<%= appt.id %>/status" method="POST">
+                    <input type="hidden" name="status" value="<%= s %>" />
+                    <button type="submit" class="btn btn-small btn-primary">
+                      Mark <%= statusLabel(s) %>
+                    </button>
+                  </form>
+                <% }); %>
+                <% if (appt.status === statuses.COMPLETED) { %>
+                  <a class="btn btn-small btn-secondary" href="/vet/appointments/<%= appt.id %>/record">Record</a>
+                <% } %>
+                <% if (next.length === 0 && appt.status !== statuses.COMPLETED) { %>
+                  <span class="muted">-</span>
+                <% } %>
+              </div>
             </td>
           </tr>
         <% }); %>

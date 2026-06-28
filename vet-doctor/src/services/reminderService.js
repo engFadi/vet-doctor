@@ -42,6 +42,28 @@ async function sendReminderBatch(flagField, windowEnd, label) {
   return due.length;
 }
 
+// Follow-up reminders on the follow-up date (SR5.15).
+async function sendFollowUpReminders() {
+  const today = new Date().toISOString().slice(0, 10);
+  const due = await Appointment.findAll({
+    where: {
+      followUpDate: today,
+      followUpReminderSent: false,
+    },
+  });
+
+  for (const appt of due) {
+    await notificationService.notifyMany([appt.clientId, appt.veterinarianId], {
+      subject: 'Follow-up reminder',
+      body: 'A follow-up is due today for a previous visit.',
+      appointmentId: appt.id,
+    });
+    appt.followUpReminderSent = true;
+    await appt.save();
+  }
+  return due.length;
+}
+
 async function processReminders() {
   const now = Date.now();
   const in24h = new Date(now + 24 * 60 * 60 * 1000);
@@ -49,7 +71,8 @@ async function processReminders() {
 
   const count24 = await sendReminderBatch('reminder24hSent', in24h, '24 hours'); // SR7.5
   const count1 = await sendReminderBatch('reminder1hSent', in1h, '1 hour'); // SR7.6
-  return count24 + count1;
+  const countFollowUp = await sendFollowUpReminders(); // SR5.15
+  return count24 + count1 + countFollowUp;
 }
 
 module.exports = { processReminders };

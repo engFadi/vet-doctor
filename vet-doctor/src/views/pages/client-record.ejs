@@ -1,0 +1,61 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Visit record</h1>
+
+  <div class="card" style="margin-bottom:1.25rem;">
+    <h3>Visit details</h3>
+    <ul class="detail-list">
+      <li><strong>When:</strong> <%= new Date(appointment.appointmentDateTime).toLocaleString() %></li>
+      <li><strong>Service:</strong> <%= appointment.service ? appointment.service.name : '-' %></li>
+      <li><strong>Animal:</strong> <%= appointment.animal ? appointment.animal.name : '-' %></li>
+      <li><strong>Veterinarian:</strong>
+        <%= appointment.veterinarian ? 'Dr. ' + appointment.veterinarian.fullName : '-' %></li>
+      <% if (appointment.followUpDate) { %>
+        <li><strong>Follow-up date:</strong> <%= appointment.followUpDate %></li>
+      <% } %>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-bottom:1.25rem;">
+    <h3>Record</h3>
+    <ul class="detail-list">
+      <li><strong>Visit date:</strong> <%= record.visitDate %></li>
+      <li><strong>Diagnosis:</strong> <%= record.diagnosis || '-' %></li>
+      <li><strong>Notes:</strong> <%= record.notes || '-' %></li>
+      <li><strong>Attachment:</strong>
+        <% if (record.attachedFile) { %>
+          <a href="/uploads/<%= record.attachedFile %>" target="_blank">View file</a>
+        <% } else { %> - <% } %>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Prescriptions</h3>
+    <% if (record.prescriptions && record.prescriptions.length) { %>
+      <table class="data-table">
+        <thead>
+          <tr><th>Medication</th><th>Dosage</th><th>Frequency</th><th>Duration</th><th>Instructions</th></tr>
+        </thead>
+        <tbody>
+          <% record.prescriptions.forEach(function (p) { %>
+            <tr>
+              <td><%= p.medicationName %></td>
+              <td><%= p.dosage || '-' %></td>
+              <td><%= p.frequency || '-' %></td>
+              <td><%= p.duration || '-' %></td>
+              <td><%= p.instructions || '-' %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p class="muted">No prescriptions.</p>
+    <% } %>
+  </div>
+
+  <p style="margin-top:1.5rem;"><a href="/client/appointments">&larr; Back to appointments</a></p>
+</section>
+
+<%- include('../partials/footer') %>
