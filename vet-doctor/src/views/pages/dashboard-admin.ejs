@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Administrator dashboard</h1>
+  <p class="lead">Welcome, <%= user.fullName %></p>
+
+  <div class="stat-grid">
+    <article class="stat-card">
+      <span class="stat-number"><%= stats.clientCount %></span>
+      <span class="stat-label">Active clients</span>
+    </article>
+    <article class="stat-card">
+      <span class="stat-number"><%= stats.vetCount %></span>
+      <span class="stat-label">Registered veterinarians</span>
+    </article>
+    <article class="stat-card">
+      <span class="stat-number"><%= stats.pendingVetCount %></span>
+      <span class="stat-label">Veterinarians pending approval</span>
+    </article>
+  </div>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3>Operations</h3>
+      <p>Approve veterinarians, manage user accounts, configure service pricing, moderate reviews,
+         and generate reports. These tools are added in the upcoming tasks.</p>
+    </article>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

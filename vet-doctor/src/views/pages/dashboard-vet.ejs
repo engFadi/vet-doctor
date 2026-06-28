@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Welcome, Dr. <%= user.fullName %></h1>
+  <p class="lead">Veterinarian dashboard</p>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3>My professional profile</h3>
+      <ul class="detail-list">
+        <li><strong>Email:</strong> <%= user.email %></li>
+        <li><strong>Phone:</strong> <%= user.phoneNumber || '-' %></li>
+        <li><strong>License #:</strong> <%= user.licenseNumber || '-' %></li>
+        <li><strong>Specialization:</strong> <%= user.specialization || '-' %></li>
+        <li><strong>Service area:</strong> <%= user.serviceArea || '-' %></li>
+        <li><strong>Experience:</strong>
+          <%= user.yearsOfExperience != null ? user.yearsOfExperience + ' years' : '-' %></li>
+        <li>
+          <strong>Status:</strong>
+          <% if (user.isApproved) { %>
+            <span class="badge badge-success">Approved</span>
+          <% } else { %>
+            <span class="badge badge-warning">Pending approval</span>
+          <% } %>
+        </li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <h3>What you can do</h3>
+      <p>Manage availability, handle assigned appointments, acknowledge emergencies, and submit
+         medical records. These features are added in the upcoming tasks.</p>
+    </article>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

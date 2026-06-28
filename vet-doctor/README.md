@@ -112,13 +112,17 @@ node seeders/index.js     # (added in Task 21)
 
 ## Demo credentials
 
-> _Placeholder — populated in Task 4 (admin seed) and Task 21 (demo data)._
+The administrator is seeded automatically on first run (configurable via `.env`).
+Veterinarian and client demo accounts are added in Task 21.
 
-| Role          | Email                | Password   |
-| ------------- | -------------------- | ---------- |
-| Administrator | _added in Task 4_    | _TBD_      |
-| Veterinarian  | _added in Task 21_   | _TBD_      |
-| Client        | _added in Task 21_   | _TBD_      |
+| Role          | Email                  | Password    |
+| ------------- | ---------------------- | ----------- |
+| Administrator | `admin@vetdoctor.com`  | `Admin123!` |
+| Veterinarian  | _added in Task 21_     | _TBD_       |
+| Client        | _added in Task 21_     | _TBD_       |
+
+> Change the admin credentials by setting `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`
+> **before** the first run (the admin is only seeded when none exists).
 
 ---
 
@@ -130,7 +134,7 @@ The system is built incrementally. Each task is one logical commit.
 - [x] **Task 1** — SQLite + Sequelize database configuration
 - [x] **Task 2** — User model, roles, authentication, sessions, password hashing
 - [x] **Task 3** — Client and veterinarian registration
-- [ ] **Task 4** — Admin seed account and role-based dashboards
+- [x] **Task 4** — Admin seed account and role-based dashboards
 - [ ] **Task 5** — Veterinarian approval workflow
 - [ ] **Task 6** — Services and service pricing
 - [ ] **Task 7** — Availability slots management

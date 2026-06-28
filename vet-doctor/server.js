@@ -14,6 +14,8 @@ const { attachUser } = require('./src/middleware/auth');
 const indexRoutes = require('./src/routes/indexRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const registerRoutes = require('./src/routes/registerRoutes');
+const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const { seedAdmin } = require('./seeders/adminSeeder');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +49,7 @@ app.use(attachUser);
 // Routes (MVC: routes -> controllers -> views)
 app.use('/', authRoutes);
 app.use('/register', registerRoutes);
+app.use('/dashboard', dashboardRoutes);
 app.use('/', indexRoutes);
 
 // 404 handler
@@ -65,6 +68,8 @@ async function start() {
 
     await db.syncDatabase();
     console.log('Database synced.');
+
+    await seedAdmin();
 
     app.listen(PORT, () => {
       console.log(`Vet Doctor server running at http://localhost:${PORT}`);

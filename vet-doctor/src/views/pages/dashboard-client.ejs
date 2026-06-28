@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Welcome, <%= user.fullName %></h1>
+  <p class="lead">Client dashboard</p>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3>My profile</h3>
+      <ul class="detail-list">
+        <li><strong>Email:</strong> <%= user.email %></li>
+        <li><strong>Phone:</strong> <%= user.phoneNumber || '-' %></li>
+        <li><strong>Address:</strong> <%= user.address || '-' %></li>
+        <li><strong>Client type:</strong> <%= user.customerType || '-' %></li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <h3>What you can do</h3>
+      <p>Book home and farm visits, follow up on appointments, make payments, and review
+         completed visits. These features are added in the upcoming tasks.</p>
+    </article>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

@@ -100,7 +100,7 @@ exports.registerClient = async (req, res, next) => {
       if (err) return next(err);
       req.session.user = user.toSession();
       req.flash('success', `Welcome to Vet Doctor, ${user.fullName}!`);
-      return res.redirect('/');
+      return res.redirect('/dashboard');
     });
   } catch (err) {
     return next(err);
