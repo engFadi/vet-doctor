@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# SQLite database files (created from Task 1 onward)
+*.sqlite
+*.sqlite3
+database.sqlite
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Runtime / OS files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
+
+# Uploaded files (medical record attachments, etc.)
+public/uploads/

@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+
+<% if (notFound) { %>
+  <section class="hero">
+    <h1>Page not found</h1>
+    <p class="lead">The page you were looking for does not exist. <a href="/">Return home</a>.</p>
+  </section>
+<% } else { %>
+  <section class="hero">
+    <h1>Veterinary care that comes to you</h1>
+    <p class="lead">
+      Vet Doctor connects pet owners and farmers with licensed veterinarians
+      who visit your home or farm &mdash; for routine care, emergencies, and livestock.
+    </p>
+    <div class="hero-actions">
+      <!-- These buttons become functional in later tasks (auth & booking). -->
+      <a class="btn btn-primary" href="/">Book a Visit</a>
+      <a class="btn btn-secondary" href="/">Browse Veterinarians</a>
+    </div>
+  </section>
+
+  <section class="services">
+    <h2>Our Services</h2>
+    <div class="card-grid">
+      <% services.forEach(function (service) { %>
+        <article class="card">
+          <h3><%= service.name %></h3>
+          <p><%= service.description %></p>
+        </article>
+      <% }); %>
+    </div>
+  </section>
+<% } %>
+
+<%- include('../partials/footer') %>
