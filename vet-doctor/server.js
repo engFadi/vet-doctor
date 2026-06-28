@@ -7,6 +7,7 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 
+const db = require('./src/models');
 const indexRoutes = require('./src/routes/indexRoutes');
 
 const app = express();
@@ -34,8 +35,24 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Vet Doctor server running at http://localhost:${PORT}`);
-});
+// Start the server only after the database connection is verified.
+async function start() {
+  try {
+    await db.connectDatabase();
+    console.log('Database connection established (SQLite).');
+
+    await db.syncDatabase();
+    console.log('Database synced.');
+
+    app.listen(PORT, () => {
+      console.log(`Vet Doctor server running at http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Unable to start server - database error:', error.message);
+    process.exit(1);
+  }
+}
+
+start();
 
 module.exports = app;

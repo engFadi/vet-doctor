@@ -127,7 +127,7 @@ node seeders/index.js     # (added in Task 21)
 The system is built incrementally. Each task is one logical commit.
 
 - [x] **Task 0** — Project setup and MVC structure
-- [ ] **Task 1** — SQLite + Sequelize database configuration
+- [x] **Task 1** — SQLite + Sequelize database configuration
 - [ ] **Task 2** — User model, roles, authentication, sessions, password hashing
 - [ ] **Task 3** — Client and veterinarian registration
 - [ ] **Task 4** — Admin seed account and role-based dashboards
