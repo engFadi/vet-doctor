@@ -19,4 +19,13 @@ router.get('/animals/:id/edit', clientController.showEditForm);
 router.post('/animals/:id', clientController.updateAnimal);
 router.post('/animals/:id/delete', clientController.deleteAnimal);
 
+// Appointment booking
+router.get('/book', clientController.showBookingForm);
+router.post('/book', clientController.selectSlot);
+router.post('/book/confirm', clientController.confirmBooking);
+
+// Appointments
+router.get('/appointments', clientController.listAppointments);
+router.post('/appointments/:id/cancel', clientController.cancelAppointment);
+
 module.exports = router;

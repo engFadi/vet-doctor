@@ -31,6 +31,9 @@ app.set('views', path.join(__dirname, 'src', 'views'));
 // Display currency, available to every view as `currency`.
 app.locals.currency = process.env.CURRENCY || 'ILS';
 
+// Appointment status label helper, available to every view as `statusLabel`.
+app.locals.statusLabel = require('./src/utils/appointmentStatus').statusLabel;
+
 // Body parsers (ready for forms in later tasks)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

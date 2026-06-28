@@ -1,0 +1,61 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Choose a time</h1>
+
+  <div class="card" style="margin-bottom:1.25rem;">
+    <h3>Booking summary</h3>
+    <ul class="detail-list">
+      <li><strong>Service:</strong> <%= service.name %>
+        (<%= Number(service.basePrice).toFixed(2) %> <%= currency %>)</li>
+      <li><strong>Animal:</strong> <%= animal.name %> (<%= animal.species %>)</li>
+      <li><strong>Reason:</strong> <%= form.reason %></li>
+      <li><strong>Location:</strong> <%= form.location %></li>
+      <li><strong>Preferred date:</strong> <%= form.date %></li>
+    </ul>
+  </div>
+
+  <% if (slots.length === 0) { %>
+    <div class="alert alert-error">
+      No veterinarians are available on <%= form.date %>. Please
+      <a href="/client/book">choose another date</a>.
+    </div>
+  <% } else { %>
+    <form action="/client/book/confirm" method="POST" class="form">
+      <input type="hidden" name="serviceId" value="<%= form.serviceId %>" />
+      <input type="hidden" name="animalId" value="<%= form.animalId %>" />
+      <input type="hidden" name="reason" value="<%= form.reason %>" />
+      <input type="hidden" name="location" value="<%= form.location %>" />
+      <input type="hidden" name="date" value="<%= form.date %>" />
+
+      <fieldset class="slot-options">
+        <legend>Available times on <%= form.date %></legend>
+
+        <label class="slot-option">
+          <input type="radio" name="slotId" value="auto" checked />
+          <span><strong>Auto-assign</strong> the earliest available veterinarian</span>
+        </label>
+
+        <% slots.forEach(function (slot) { %>
+          <label class="slot-option">
+            <input type="radio" name="slotId" value="<%= slot.id %>" />
+            <span>
+              <strong><%= slot.startTime %> &ndash; <%= slot.endTime %></strong>
+              with Dr. <%= slot.veterinarian.fullName %>
+              <span class="muted">
+                &middot; <%= slot.veterinarian.specialization || 'General' %>
+                &middot; <%= slot.veterinarian.serviceArea || 'Any area' %>
+              </span>
+            </span>
+          </label>
+        <% }); %>
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary">Confirm booking</button>
+    </form>
+  <% } %>
+
+  <p style="margin-top:1rem;"><a href="/client/book">&larr; Change details</a></p>
+</section>
+
+<%- include('../partials/footer') %>

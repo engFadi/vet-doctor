@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Book a visit</h1>
+
+  <%- include('../partials/form-errors') %>
+
+  <% if (animals.length === 0) { %>
+    <div class="alert alert-error">
+      You need at least one animal profile before booking.
+      <a href="/client/animals">Add an animal</a> first.
+    </div>
+  <% } else { %>
+    <form action="/client/book" method="POST" class="form">
+      <label for="serviceId">Service type</label>
+      <select id="serviceId" name="serviceId" required>
+        <option value="">-- Select --</option>
+        <% services.forEach(function (s) { %>
+          <option value="<%= s.id %>" <%= form.serviceId == s.id ? 'selected' : '' %>>
+            <%= s.name %> (<%= Number(s.basePrice).toFixed(2) %> <%= currency %>)
+          </option>
+        <% }); %>
+      </select>
+
+      <label for="animalId">Animal</label>
+      <select id="animalId" name="animalId" required>
+        <option value="">-- Select --</option>
+        <% animals.forEach(function (a) { %>
+          <option value="<%= a.id %>" <%= form.animalId == a.id ? 'selected' : '' %>>
+            <%= a.name %> (<%= a.species %>)
+          </option>
+        <% }); %>
+      </select>
+
+      <label for="reason">Reason for visit</label>
+      <textarea id="reason" name="reason" rows="3" required><%= form.reason || '' %></textarea>
+
+      <label for="location">Visit location</label>
+      <input type="text" id="location" name="location" value="<%= form.location || '' %>"
+             placeholder="Home or farm address" required />
+
+      <label for="date">Preferred date</label>
+      <input type="date" id="date" name="date" min="<%= today %>" value="<%= form.date || '' %>" required />
+
+      <button type="submit" class="btn btn-primary">Find available times</button>
+    </form>
+  <% } %>
+
+  <p style="margin-top:1rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

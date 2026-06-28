@@ -1,0 +1,70 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <div class="dashboard-head">
+    <h1>My appointments</h1>
+    <a class="btn btn-primary" href="/client/book">Book a visit</a>
+  </div>
+
+  <% if (appointments.length === 0) { %>
+    <div class="card">
+      <p class="muted">You have no appointments yet. <a href="/client/book">Book your first visit</a>.</p>
+    </div>
+  <% } else { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date &amp; time</th>
+          <th>Service</th>
+          <th>Animal</th>
+          <th>Veterinarian</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% appointments.forEach(function (appt) { %>
+          <tr>
+            <td>
+              <%= new Date(appt.appointmentDateTime).toLocaleString() %>
+              <% if (appt.priorityFlag) { %>
+                <span class="badge badge-warning">Emergency</span>
+              <% } %>
+            </td>
+            <td><%= appt.service ? appt.service.name : '-' %></td>
+            <td><%= appt.animal ? appt.animal.name : '-' %></td>
+            <td><%= appt.veterinarian ? 'Dr. ' + appt.veterinarian.fullName : '-' %></td>
+            <td><%= appt.visitLocation %></td>
+            <td>
+              <% if (appt.status === statuses.COMPLETED) { %>
+                <span class="badge badge-success"><%= statusLabel(appt.status) %></span>
+              <% } else if (appt.status === statuses.CANCELLED) { %>
+                <span class="badge badge-danger"><%= statusLabel(appt.status) %></span>
+              <% } else { %>
+                <span class="badge badge-info"><%= statusLabel(appt.status) %></span>
+              <% } %>
+            </td>
+            <td>
+              <% var cancellable = appt.status !== statuses.CANCELLED
+                   && appt.status !== statuses.COMPLETED
+                   && new Date(appt.appointmentDateTime) > now; %>
+              <% if (cancellable) { %>
+                <form action="/client/appointments/<%= appt.id %>/cancel" method="POST"
+                      onsubmit="return confirm('Cancel this appointment?');">
+                  <button type="submit" class="btn btn-small btn-danger">Cancel</button>
+                </form>
+              <% } else { %>
+                <span class="muted">-</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

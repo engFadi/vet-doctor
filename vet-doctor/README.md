@@ -169,7 +169,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Let clients add and manage profiles for their animals (species, breed, age, weight, gender) to
   attach to bookings and medical records.
 
-- [ ] **Task 9 — Appointment booking flow**
+- [x] **Task 9 — Appointment booking flow**
   Implement the core booking use case: choose service, animal, location, date/time, and a
   veterinarian (or auto-assign a matching one), creating the appointment and notifying both parties
   (SR3.1–SR3.8, UR3, Use Case: Book Appointment).

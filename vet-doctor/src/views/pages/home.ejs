@@ -13,9 +13,13 @@
       who visit your home or farm &mdash; for routine care, emergencies, and livestock.
     </p>
     <div class="hero-actions">
-      <!-- These buttons become functional in later tasks (auth & booking). -->
-      <a class="btn btn-primary" href="/">Book a Visit</a>
-      <a class="btn btn-secondary" href="/">Browse Veterinarians</a>
+      <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'client') { %>
+        <a class="btn btn-primary" href="/client/book">Book a Visit</a>
+        <a class="btn btn-secondary" href="/client/appointments">My Appointments</a>
+      <% } else { %>
+        <a class="btn btn-primary" href="/register/client">Get Started</a>
+        <a class="btn btn-secondary" href="/login">Log In</a>
+      <% } %>
     </div>
   </section>
 
