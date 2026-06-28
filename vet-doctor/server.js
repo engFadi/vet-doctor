@@ -6,9 +6,13 @@ require('dotenv').config();
 
 const path = require('path');
 const express = require('express');
+const session = require('express-session');
 
 const db = require('./src/models');
+const flash = require('./src/middleware/flash');
+const { attachUser } = require('./src/middleware/auth');
 const indexRoutes = require('./src/routes/indexRoutes');
+const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,7 +28,23 @@ app.use(express.json());
 // Static assets (CSS, JS, images) served from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Sessions (express-session) + flash messages + current user in views
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'vet-doctor-dev-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 2, // 2 hours
+    },
+  })
+);
+app.use(flash);
+app.use(attachUser);
+
 // Routes (MVC: routes -> controllers -> views)
+app.use('/', authRoutes);
 app.use('/', indexRoutes);
 
 // 404 handler

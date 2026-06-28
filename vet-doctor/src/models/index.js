@@ -12,9 +12,14 @@ const db = {
   syncDatabase,
 };
 
-// Models are registered here in later tasks, e.g.:
-//   db.User = require('./User')(sequelize);
-// After all models are loaded, their associations are defined:
-//   Object.values(db).forEach((m) => m.associate && m.associate(db));
+// --- Register models ---
+db.User = require('./User')(sequelize);
+
+// --- Define associations (once all models are loaded) ---
+Object.values(db).forEach((model) => {
+  if (model && typeof model.associate === 'function') {
+    model.associate(db);
+  }
+});
 
 module.exports = db;

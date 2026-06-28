@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+
+<section class="auth">
+  <h1>Log In</h1>
+
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+
+  <form action="/login" method="POST" class="form">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" value="<%= email %>" required autofocus />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+
+    <button type="submit" class="btn btn-primary">Log In</button>
+  </form>
+
+  <p class="muted">
+    Don&rsquo;t have an account? Registration is added in Task 3.
+  </p>
+</section>
+
+<%- include('../partials/footer') %>
