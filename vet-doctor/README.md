@@ -128,32 +128,107 @@ Veterinarian and client demo accounts are added in Task 21.
 
 ## Development task checklist
 
-The system is built incrementally. Each task is one logical commit.
+The system is built incrementally. Each task is one logical commit. The requirement
+codes in parentheses refer to the System Requirements (SR) and Use Cases in the Final Report.
 
-- [x] **Task 0** — Project setup and MVC structure
-- [x] **Task 1** — SQLite + Sequelize database configuration
-- [x] **Task 2** — User model, roles, authentication, sessions, password hashing
-- [x] **Task 3** — Client and veterinarian registration
-- [x] **Task 4** — Admin seed account and role-based dashboards
-- [ ] **Task 5** — Veterinarian approval workflow
-- [ ] **Task 6** — Services and service pricing
-- [ ] **Task 7** — Availability slots management
-- [ ] **Task 8** — Animal profiles
-- [ ] **Task 9** — Appointment booking flow
-- [ ] **Task 10** — Emergency booking acknowledgement and reassignment logic
-- [ ] **Task 11** — Appointment status tracking and notifications
-- [ ] **Task 12** — Medical records and prescriptions
-- [ ] **Task 13** — Invoice and payment workflow
-- [ ] **Task 14** — Mock payment gateway
-- [ ] **Task 15** — Payment history and invoice download/view
-- [ ] **Task 16** — Review submission and duplicate prevention
-- [ ] **Task 17** — Review moderation and veterinarian average rating
-- [ ] **Task 18** — Consultation requests
-- [ ] **Task 19** — Admin user management
-- [ ] **Task 20** — Admin reports
-- [ ] **Task 21** — Seed demo data
-- [ ] **Task 22** — UI cleanup and Bootstrap styling
-- [ ] **Task 23** — Final testing and README update
+- [x] **Task 0 — Project setup and MVC structure**
+  Initialize the Node.js + Express app with EJS views, the MVC folder layout
+  (routes / controllers / models / services / middleware / views), a home page, and base styling.
+
+- [x] **Task 1 — SQLite + Sequelize database configuration**
+  Configure a single SQLite-backed Sequelize instance, a central model registry, and connect/sync
+  the database on server startup.
+
+- [x] **Task 2 — User model, roles, authentication, sessions, password hashing**
+  Implement the `RegisteredUser` model with a `role` discriminator (client/veterinarian/admin),
+  bcrypt password hashing, session-based login/logout, and account lockout after failed attempts
+  (SR1.7, SR2.1–SR2.4, Use Case: Log In).
+
+- [x] **Task 3 — Client and veterinarian registration**
+  Registration forms and validation: required fields, email format, unique email, and password
+  strength rules. Clients become active immediately; veterinarians are created as pending approval
+  (SR1.1–SR1.6, SR1.8, UR1).
+
+- [x] **Task 4 — Admin seed account and role-based dashboards**
+  Seed the single pre-configured administrator and route each user to a role-specific dashboard
+  after login, with live admin metrics (SR1.8, SR8.1–SR8.2).
+
+- [ ] **Task 5 — Veterinarian approval workflow**
+  Let the administrator review pending veterinarian registrations, verify credentials, and approve
+  or reject them so approved vets can log in (SR8.5–SR8.7).
+
+- [ ] **Task 6 — Services and service pricing**
+  Define the three service types (Routine Check-Up, Emergency Visit, Farm Visit) with base prices,
+  and let the admin update service pricing (SR3.1, SR6.4, SR8.15).
+
+- [ ] **Task 7 — Availability slots management**
+  Let veterinarians create and manage available/unavailable time slots; booked slots are marked
+  unavailable so they cannot be double-booked (SR4.3–SR4.4, SR5.3–SR5.4).
+
+- [ ] **Task 8 — Animal profiles**
+  Let clients add and manage profiles for their animals (species, breed, age, weight, gender) to
+  attach to bookings and medical records.
+
+- [ ] **Task 9 — Appointment booking flow**
+  Implement the core booking use case: choose service, animal, location, date/time, and a
+  veterinarian (or auto-assign a matching one), creating the appointment and notifying both parties
+  (SR3.1–SR3.8, UR3, Use Case: Book Appointment).
+
+- [ ] **Task 10 — Emergency booking acknowledgement and reassignment logic**
+  Flag emergency visits as high priority, require the assigned vet to acknowledge within the
+  deadline, and reassign or escalate if they do not respond (SR3.9–SR3.11, Use Case: Acknowledge
+  Emergency Booking).
+
+- [ ] **Task 11 — Appointment status tracking and notifications**
+  Track the appointment lifecycle (Confirmed → En Route → In Progress → Completed), let clients
+  follow status, and add the mocked Notification Service for confirmations and reminders
+  (SR5.5–SR5.6, SR7.1–SR7.6).
+
+- [ ] **Task 12 — Medical records and prescriptions**
+  Let veterinarians add post-visit notes, medical records, and prescriptions for completed visits,
+  linked to the relevant animal (SR5.7–SR5.12).
+
+- [ ] **Task 13 — Invoice and payment workflow**
+  Generate invoices from the base service charge plus post-visit charges, support cash and card
+  payment methods, and track invoice/payment status (SR6.1–SR6.11, Use Case: Make Payment).
+
+- [ ] **Task 14 — Mock payment gateway**
+  Add a mocked external Payment Gateway (and Bank) that authorizes card payments and returns an
+  approve/reject result, storing only a masked card reference (SR6.2, SR6.15–SR6.16).
+
+- [ ] **Task 15 — Payment history and invoice download/view**
+  Provide per-user payment history with date-range filtering and let users view/download invoices
+  (SR6.11–SR6.14).
+
+- [ ] **Task 16 — Review submission and duplicate prevention**
+  Let clients submit one rating (1–5) and an optional review for a completed appointment, preventing
+  duplicate or ineligible submissions (SR9.3–SR9.8, Use Case: Submit Review).
+
+- [ ] **Task 17 — Review moderation and veterinarian average rating**
+  Run content moderation on reviews, queue flagged ones for admin approval/removal, and recompute
+  each veterinarian's average rating (SR9.10–SR9.15, SR4.5).
+
+- [ ] **Task 18 — Consultation requests**
+  Let clients request an online consultation for an active appointment and let the assigned vet
+  accept or decline it (SR7.12–SR7.13).
+
+- [ ] **Task 19 — Admin user management**
+  Let the admin change account status (active, suspended, deactivated, deleted) and record each
+  action with reason and timestamp (SR8.8–SR8.9).
+
+- [ ] **Task 20 — Admin reports**
+  Generate monthly performance reports: bookings by service type, total revenue, revenue by
+  veterinarian, and export options (SR8.10–SR8.14).
+
+- [ ] **Task 21 — Seed demo data**
+  Seed realistic demo accounts (clients, approved vets), services, slots, animals, and sample
+  appointments so the app is presentable out of the box.
+
+- [ ] **Task 22 — UI cleanup and Bootstrap styling**
+  Polish the interface and apply consistent Bootstrap/CSS styling across all pages.
+
+- [ ] **Task 23 — Final testing and README update**
+  End-to-end testing of all workflows and a final pass over the README and documentation.
 
 ---
 
