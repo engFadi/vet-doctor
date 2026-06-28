@@ -165,7 +165,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Let veterinarians create and manage available/unavailable time slots; booked slots are marked
   unavailable so they cannot be double-booked (SR4.3–SR4.4, SR5.3–SR5.4).
 
-- [ ] **Task 8 — Animal profiles**
+- [x] **Task 8 — Animal profiles**
   Let clients add and manage profiles for their animals (species, breed, age, weight, gender) to
   attach to bookings and medical records.
 

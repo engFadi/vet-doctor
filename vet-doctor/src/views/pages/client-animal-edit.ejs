@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Edit animal</h1>
+
+  <%- include('../partials/form-errors') %>
+
+  <form action="/client/animals/<%= animal.id %>" method="POST" class="form">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value="<%= form.name || '' %>" required />
+
+    <label for="species">Species</label>
+    <input type="text" id="species" name="species" value="<%= form.species || '' %>" required />
+
+    <label for="breed">Breed <span class="muted">(optional)</span></label>
+    <input type="text" id="breed" name="breed" value="<%= form.breed || '' %>" />
+
+    <label for="age">Age in years <span class="muted">(optional)</span></label>
+    <input type="number" id="age" name="age" min="0" value="<%= form.age != null ? form.age : '' %>" />
+
+    <label for="weight">Weight in kg <span class="muted">(optional)</span></label>
+    <input type="number" step="0.01" id="weight" name="weight" min="0" value="<%= form.weight != null ? form.weight : '' %>" />
+
+    <label for="gender">Gender <span class="muted">(optional)</span></label>
+    <select id="gender" name="gender">
+      <option value="">-- Select --</option>
+      <% genders.forEach(function (g) { %>
+        <option value="<%= g %>" <%= form.gender === g ? 'selected' : '' %>><%= g %></option>
+      <% }); %>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Save changes</button>
+  </form>
+
+  <p style="margin-top:1rem;"><a href="/client/animals">&larr; Back to my animals</a></p>
+</section>
+
+<%- include('../partials/footer') %>

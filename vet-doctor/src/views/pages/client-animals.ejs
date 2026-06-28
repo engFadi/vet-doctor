@@ -1,0 +1,88 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>My animals</h1>
+  <p class="lead">Add profiles for your pets and livestock to use when booking visits.</p>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3>Add an animal</h3>
+
+      <%- include('../partials/form-errors') %>
+
+      <form action="/client/animals" method="POST" class="form">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" value="<%= form.name || '' %>" required />
+
+        <label for="species">Species</label>
+        <input type="text" id="species" name="species" value="<%= form.species || '' %>"
+               placeholder="Dog, Cat, Sheep, Cow..." required />
+
+        <label for="breed">Breed <span class="muted">(optional)</span></label>
+        <input type="text" id="breed" name="breed" value="<%= form.breed || '' %>" />
+
+        <label for="age">Age in years <span class="muted">(optional)</span></label>
+        <input type="number" id="age" name="age" min="0" value="<%= form.age || '' %>" />
+
+        <label for="weight">Weight in kg <span class="muted">(optional)</span></label>
+        <input type="number" step="0.01" id="weight" name="weight" min="0" value="<%= form.weight || '' %>" />
+
+        <label for="gender">Gender <span class="muted">(optional)</span></label>
+        <select id="gender" name="gender">
+          <option value="">-- Select --</option>
+          <% genders.forEach(function (g) { %>
+            <option value="<%= g %>" <%= form.gender === g ? 'selected' : '' %>><%= g %></option>
+          <% }); %>
+        </select>
+
+        <button type="submit" class="btn btn-primary">Add animal</button>
+      </form>
+    </article>
+
+    <article class="card card-span">
+      <h3>My animals</h3>
+      <% if (animals.length === 0) { %>
+        <p class="muted">You have not added any animals yet.</p>
+      <% } else { %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Species</th>
+              <th>Breed</th>
+              <th>Age</th>
+              <th>Weight</th>
+              <th>Gender</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% animals.forEach(function (animal) { %>
+              <tr>
+                <td><%= animal.name %></td>
+                <td><%= animal.species %></td>
+                <td><%= animal.breed || '-' %></td>
+                <td><%= animal.age != null ? animal.age : '-' %></td>
+                <td><%= animal.weight != null ? animal.weight + ' kg' : '-' %></td>
+                <td><%= animal.gender || '-' %></td>
+                <td>
+                  <div class="action-row">
+                    <a class="btn btn-small btn-secondary" href="/client/animals/<%= animal.id %>/edit">Edit</a>
+                    <form action="/client/animals/<%= animal.id %>/delete" method="POST"
+                          onsubmit="return confirm('Remove <%= animal.name %>?');">
+                      <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </article>
+  </div>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

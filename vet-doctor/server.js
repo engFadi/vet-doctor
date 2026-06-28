@@ -17,6 +17,7 @@ const registerRoutes = require('./src/routes/registerRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const vetRoutes = require('./src/routes/vetRoutes');
+const clientRoutes = require('./src/routes/clientRoutes');
 const { seedAdmin } = require('./seeders/adminSeeder');
 const { seedServices } = require('./seeders/serviceSeeder');
 
@@ -58,6 +59,7 @@ app.use('/register', registerRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/admin', adminRoutes);
 app.use('/vet', vetRoutes);
+app.use('/client', clientRoutes);
 app.use('/', indexRoutes);
 
 // 404 handler

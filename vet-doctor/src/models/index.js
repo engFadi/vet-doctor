@@ -16,6 +16,7 @@ const db = {
 db.User = require('./User')(sequelize);
 db.Service = require('./Service')(sequelize);
 db.AvailabilitySlot = require('./AvailabilitySlot')(sequelize);
+db.Animal = require('./Animal')(sequelize);
 
 // --- Define associations (once all models are loaded) ---
 Object.values(db).forEach((model) => {
