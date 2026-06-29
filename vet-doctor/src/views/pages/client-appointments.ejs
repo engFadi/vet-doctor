@@ -59,6 +59,11 @@
                 <% if (appt.status === statuses.COMPLETED) { %>
                   <a class="btn btn-small btn-secondary" href="/client/appointments/<%= appt.id %>/record">View record</a>
                   <a class="btn btn-small btn-secondary" href="/client/appointments/<%= appt.id %>/invoice">Invoice</a>
+                  <% if (appt.review) { %>
+                    <span class="badge badge-info"><%= appt.review.rating %>&#9733; reviewed</span>
+                  <% } else { %>
+                    <a class="btn btn-small btn-primary" href="/client/appointments/<%= appt.id %>/review">Leave a review</a>
+                  <% } %>
                 <% } %>
                 <% if (!cancellable && appt.status !== statuses.COMPLETED) { %>
                   <span class="muted">-</span>

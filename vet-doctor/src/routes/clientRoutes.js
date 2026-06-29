@@ -37,6 +37,10 @@ router.get('/appointments/:id/invoice/pay-card', clientController.showCardForm);
 router.post('/appointments/:id/invoice/pay-card', clientController.payCard);
 router.get('/appointments/:id/invoice/pdf', clientController.downloadInvoicePdf);
 
+// Reviews
+router.get('/appointments/:id/review', clientController.showReviewForm);
+router.post('/appointments/:id/review', clientController.submitReview);
+
 // Payment history
 router.get('/payments', clientController.paymentHistory);
 

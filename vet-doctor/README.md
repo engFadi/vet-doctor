@@ -201,7 +201,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Provide per-user payment history with date-range filtering and let users view/download invoices
   (SR6.11–SR6.14).
 
-- [ ] **Task 16 — Review submission and duplicate prevention**
+- [x] **Task 16 — Review submission and duplicate prevention**
   Let clients submit one rating (1–5) and an optional review for a completed appointment, preventing
   duplicate or ineligible submissions (SR9.3–SR9.8, Use Case: Submit Review).
 

@@ -60,6 +60,13 @@ const PAYMENT_STATUS = {
   REFUNDED: 'REFUNDED',
 };
 
+// ReviewStatus enumeration.
+const REVIEW_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REMOVED: 'REMOVED',
+};
+
 module.exports = {
   ROLES,
   ACCOUNT_STATUS,
@@ -68,4 +75,5 @@ module.exports = {
   APPOINTMENT_STATUS,
   PAYMENT_METHOD,
   PAYMENT_STATUS,
+  REVIEW_STATUS,
 };

@@ -476,6 +476,24 @@ body {
   border-radius: 6px;
 }
 
+/* Rating input */
+.rating-input {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rating-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: #b8860b;
+}
+
 /* Tables */
 .data-table {
   width: 100%;

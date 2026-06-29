@@ -1,0 +1,34 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Leave a review</h1>
+  <p class="muted">
+    <%= appointment.service ? appointment.service.name : 'Visit' %>
+    with Dr. <%= appointment.veterinarian ? appointment.veterinarian.fullName : '' %>
+    on <%= new Date(appointment.appointmentDateTime).toLocaleDateString() %>
+  </p>
+
+  <%- include('../partials/form-errors') %>
+
+  <form action="/client/appointments/<%= appointment.id %>/review" method="POST" class="form">
+    <label>Rating</label>
+    <div class="rating-input">
+      <% for (var i = 1; i <= 5; i++) { %>
+        <label class="rating-star">
+          <input type="radio" name="rating" value="<%= i %>"
+                 <%= String(form.rating) === String(i) ? 'checked' : '' %> required />
+          <span><%= i %> &#9733;</span>
+        </label>
+      <% } %>
+    </div>
+
+    <label for="reviewText">Review <span class="muted">(optional, max <%= maxText %> chars)</span></label>
+    <textarea id="reviewText" name="reviewText" rows="4" maxlength="<%= maxText %>"><%= form.reviewText || '' %></textarea>
+
+    <button type="submit" class="btn btn-primary">Submit review</button>
+  </form>
+
+  <p style="margin-top:1rem;"><a href="/client/appointments">&larr; Back to appointments</a></p>
+</section>
+
+<%- include('../partials/footer') %>

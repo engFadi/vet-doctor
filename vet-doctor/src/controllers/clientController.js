@@ -17,7 +17,9 @@ const notificationService = require('../services/notificationService');
 const invoiceService = require('../services/invoiceService');
 const paymentGateway = require('../services/paymentGateway');
 const pdfService = require('../services/pdfService');
-const { PAYMENT_METHOD, PAYMENT_STATUS } = require('../models/enums');
+const { PAYMENT_METHOD, PAYMENT_STATUS, REVIEW_STATUS } = require('../models/enums');
+
+const Review = db.Review;
 
 const Invoice = db.Invoice;
 const InvoiceItem = db.InvoiceItem;
@@ -416,6 +418,7 @@ exports.listAppointments = async (req, res, next) => {
         { model: Service, as: 'service' },
         { model: Animal, as: 'animal' },
         { model: User, as: 'veterinarian', attributes: ['id', 'fullName', 'specialization'] },
+        { model: Review, as: 'review' },
       ],
       order: [['appointmentDateTime', 'DESC']],
     });
@@ -702,6 +705,110 @@ exports.payCard = async (req, res, next) => {
 
     req.flash('error', `${result.reason} Please try again or choose another method.`);
     return res.redirect(`/client/appointments/${appointment.id}/invoice/pay-card`);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Submit Review use case (SR9.3-9.8)
+// ----------------------------------------------------------------------
+
+// GET /client/appointments/:id/review - the review form
+exports.showReviewForm = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, clientId: req.session.user.id },
+      include: [
+        { model: Service, as: 'service' },
+        { model: User, as: 'veterinarian', attributes: ['id', 'fullName'] },
+        { model: Review, as: 'review' },
+      ],
+    });
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    // SR9.6 / SR9.7: only completed appointments are eligible.
+    if (appointment.status !== APPOINTMENT_STATUS.COMPLETED) {
+      req.flash('error', 'You can only review completed visits.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    // SR9.8 / E1: one review per appointment.
+    if (appointment.review) {
+      req.flash('error', 'You have already reviewed this appointment.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    res.render('pages/client-review', {
+      title: 'Leave a Review - Vet Doctor',
+      appointment,
+      maxText: Review.MAX_TEXT,
+      errors: [],
+      form: {},
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /client/appointments/:id/review - submit the review
+exports.submitReview = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, clientId: req.session.user.id },
+      include: [
+        { model: Service, as: 'service' },
+        { model: User, as: 'veterinarian', attributes: ['id', 'fullName'] },
+        { model: Review, as: 'review' },
+      ],
+    });
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (appointment.status !== APPOINTMENT_STATUS.COMPLETED) {
+      req.flash('error', 'You can only review completed visits.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (appointment.review) {
+      req.flash('error', 'You have already reviewed this appointment.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+
+    const ratingRaw = (req.body.rating || '').trim();
+    const reviewText = (req.body.reviewText || '').trim();
+    const errors = [];
+
+    // E2: rating must be an integer 1-5.
+    const rating = Number(ratingRaw);
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      errors.push('Please provide a rating between 1 and 5.');
+    }
+    if (reviewText.length > Review.MAX_TEXT) {
+      errors.push(`Your review must be ${Review.MAX_TEXT} characters or fewer.`);
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).render('pages/client-review', {
+        title: 'Leave a Review - Vet Doctor',
+        appointment,
+        maxText: Review.MAX_TEXT,
+        errors,
+        form: { rating: ratingRaw, reviewText },
+      });
+    }
+
+    await Review.create({
+      appointmentId: appointment.id,
+      clientId: req.session.user.id,
+      veterinarianId: appointment.veterinarianId,
+      rating,
+      reviewText: reviewText || null,
+      status: REVIEW_STATUS.PENDING, // moderation/approval in Task 17
+    });
+
+    req.flash('success', 'Thank you! Your review has been submitted.');
+    return res.redirect(APPOINTMENTS_LIST);
   } catch (err) {
     return next(err);
   }
