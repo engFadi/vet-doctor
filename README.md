@@ -111,9 +111,13 @@ Then open **http://localhost:3000** in your browser.
 
 > SQLite + Sequelize are introduced in **Task 1**. Until then no database is required.
 
-The SQLite database file (`database.sqlite`) is created automatically on first run from the
-Sequelize models, and the admin account + services are seeded automatically. The database file
-is git-ignored.
+The SQLite database file is created automatically on first run from the Sequelize models, and the
+admin account + services are seeded automatically. Its location is configurable via `DB_STORAGE`:
+
+- **Local / demo:** `DB_STORAGE=./data/vet_doctor.sqlite` (stored in the git-ignored `data/` folder)
+- **Render (persistent disk):** `DB_STORAGE=/var/data/vet_doctor.sqlite`
+
+The app creates the target folder automatically if it does not exist.
 
 To load realistic demo accounts, animals, slots, and sample appointments:
 
@@ -138,6 +142,65 @@ accounts are created by running `npm run seed:demo` (see Database setup).
 
 > Change the admin credentials by setting `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`
 > **before** the first run (the admin is only seeded when none exists).
+
+---
+
+## Environment variables
+
+Copy `vet-doctor/.env.example` to `vet-doctor/.env` and adjust as needed.
+
+| Variable                | Default                       | Purpose                                          |
+| ----------------------- | ----------------------------- | ------------------------------------------------ |
+| `PORT`                  | `3000`                        | Server port (Render sets this automatically)     |
+| `NODE_ENV`              | `development`                 | Set to `production` on Render                     |
+| `SESSION_SECRET`        | dev fallback                  | Session signing secret — **set a random value**   |
+| `DB_STORAGE`            | `./data/vet_doctor.sqlite`    | SQLite file path (see Database setup)            |
+| `SQL_LOGGING`           | `false`                       | Log SQL queries                                   |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` | `admin@vetdoctor.com` / `Admin123!` | Seeded admin account |
+| `CURRENCY`              | `ILS`                         | Display currency                                  |
+| `EMERGENCY_ACK_MINUTES` | `15`                          | Emergency acknowledgement window                  |
+| `PLATFORM_MARGIN`       | `0.2`                         | Profit margin used in reports                      |
+
+---
+
+## Deployment (Render)
+
+The app is a long-running Express server (with background jobs), so deploy it as a Render
+**Web Service**. A [`render.yaml`](render.yaml) Blueprint is included at the repo root with
+`rootDir: vet-doctor`.
+
+### Option A — Blueprint (one click)
+
+1. Push this repo to GitHub.
+2. In Render: **New + → Blueprint** → select this repo → Apply. Render reads `render.yaml`,
+   sets the environment variables, and deploys.
+
+### Option B — Manual
+
+1. Render: **New + → Web Service** → connect the repo.
+2. Settings:
+   - **Root Directory:** `vet-doctor`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm run start:render`
+3. **Environment variables:** `NODE_ENV=production`, `SESSION_SECRET=<random>`,
+   `DB_STORAGE=./data/vet_doctor.sqlite` (free) — do **not** set `PORT` (Render provides it).
+4. Create the service → you get a public `https://<name>.onrender.com` URL.
+
+The `start:render` script re-seeds demo data on boot, so the live app always has demo accounts.
+
+### ⚠️ SQLite + Render: persistence requires a disk
+
+> On Render's **free** plan the filesystem is **ephemeral** — `data/vet_doctor.sqlite` is
+> **wiped on every deploy/restart**, so anything entered live is lost (and the app re-seeds demo
+> data on each boot). Free instances also sleep after ~15 min idle.
+>
+> To **persist data**, Render requires a **paid plan** with a mounted disk:
+> 1. In `render.yaml`, change `plan: free` → `plan: starter` and uncomment the `disk:` block
+>    (mounts a 1 GB disk at `/var/data`).
+> 2. Set `DB_STORAGE=/var/data/vet_doctor.sqlite`.
+>
+> The app stores the database on the mounted disk path — **never** rely on the temporary app
+> directory for data you need to keep.
 
 ---
 

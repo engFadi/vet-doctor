@@ -1,0 +1,3 @@
+# Local SQLite database lives here (data/vet_doctor.sqlite).
+# The .sqlite file itself is git-ignored; this .gitkeep keeps the folder.
+# On Render, store the DB on the mounted persistent disk (/var/data), NOT here.

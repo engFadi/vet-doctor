@@ -3,15 +3,22 @@
 // Single Sequelize instance connected to a local SQLite file.
 // Models are registered against this instance from Task 2 onward.
 // ----------------------------------------------------------------------
+const fs = require('fs');
 const path = require('path');
 const { Sequelize } = require('sequelize');
 
-// Storage path comes from .env (DB_STORAGE); default to ./database.sqlite
-// at the project root. Relative paths are resolved from the project root.
-const configuredStorage = process.env.DB_STORAGE || './database.sqlite';
+// Storage path comes from .env (DB_STORAGE).
+//   Local:  ./data/vet_doctor.sqlite
+//   Render: /var/data/vet_doctor.sqlite  (mounted persistent disk)
+// Relative paths are resolved from the project root; absolute paths (e.g. a
+// mounted disk) are used as-is.
+const configuredStorage = process.env.DB_STORAGE || './data/vet_doctor.sqlite';
 const storage = path.isAbsolute(configuredStorage)
   ? configuredStorage
   : path.join(__dirname, '..', '..', configuredStorage);
+
+// Ensure the directory exists (SQLite will not create missing folders).
+fs.mkdirSync(path.dirname(storage), { recursive: true });
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',

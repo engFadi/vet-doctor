@@ -4,11 +4,13 @@ node_modules/
 # Environment variables
 .env
 
-# SQLite database files (app database + throwaway test.sqlite used for testing)
+# SQLite database files (app DB in data/, plus throwaway test.sqlite)
+# The data/ folder is kept via data/.gitkeep, but the .sqlite files are ignored.
 *.sqlite
 *.sqlite3
 database.sqlite
 test.sqlite
+data/*.sqlite
 
 # Logs
 logs/

@@ -1,0 +1,40 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# This repo's root is the Project folder; the app lives in vet-doctor/.
+# Deploy from the Render dashboard:  New + -> Blueprint -> pick this repo.
+
+services:
+  - type: web
+    name: vet-doctor
+    runtime: node
+    rootDir: vet-doctor          # the app is in this subfolder
+    plan: free                   # NOTE: the free plan has NO persistent disk
+    buildCommand: npm install
+    startCommand: npm run start:render
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true      # Render generates a strong random secret
+      - key: CURRENCY
+        value: ILS
+      - key: EMERGENCY_ACK_MINUTES
+        value: "15"
+      - key: PLATFORM_MARGIN
+        value: "0.2"
+      # FREE plan: the filesystem is EPHEMERAL, so SQLite resets on every
+      # deploy/restart. The start script re-seeds demo data on boot.
+      - key: DB_STORAGE
+        value: ./data/vet_doctor.sqlite
+
+    # ------------------------------------------------------------------
+    # TO PERSIST DATA (paid plan required for disks on Render):
+    #   1. change `plan: free` above to `plan: starter`
+    #   2. change DB_STORAGE above to: /var/data/vet_doctor.sqlite
+    #   3. uncomment the disk block below
+    # ------------------------------------------------------------------
+    # disk:
+    #   name: vet-doctor-data
+    #   mountPath: /var/data
+    #   sizeGB: 1

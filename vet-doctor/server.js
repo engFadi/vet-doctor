@@ -29,6 +29,11 @@ const reminderService = require('./src/services/reminderService');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Behind Render's HTTPS proxy in production (correct client IPs, secure cookies).
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // View engine: EJS, with views stored under src/views
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
