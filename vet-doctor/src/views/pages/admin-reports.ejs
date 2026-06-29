@@ -1,0 +1,80 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <div class="dashboard-head">
+    <h1>Monthly report</h1>
+    <div class="action-row">
+      <a class="btn btn-small btn-secondary" href="/admin/reports/export.pdf?period=<%= period %>">Export PDF</a>
+      <a class="btn btn-small btn-secondary" href="/admin/reports/export.csv?period=<%= period %>">Export CSV</a>
+    </div>
+  </div>
+
+  <form action="/admin/reports" method="GET" class="filter-bar">
+    <label for="period">Month</label>
+    <input type="month" id="period" name="period" value="<%= period %>" />
+    <button type="submit" class="btn btn-small btn-primary">View</button>
+  </form>
+
+  <div class="stat-grid">
+    <article class="stat-card">
+      <span class="stat-number"><%= report.totalBookings %></span>
+      <span class="stat-label">Bookings</span>
+    </article>
+    <article class="stat-card">
+      <span class="stat-number"><%= Number(report.totalRevenue).toFixed(2) %></span>
+      <span class="stat-label">Revenue (<%= currency %>)</span>
+    </article>
+    <article class="stat-card">
+      <span class="stat-number"><%= Number(report.profitMargin).toFixed(2) %></span>
+      <span class="stat-label">Profit margin (<%= currency %>)</span>
+    </article>
+    <article class="stat-card">
+      <span class="stat-number"><%= report.newClients %></span>
+      <span class="stat-label">New clients</span>
+    </article>
+    <article class="stat-card">
+      <span class="stat-number"><%= report.retentionRate %>%</span>
+      <span class="stat-label">Retention rate</span>
+    </article>
+  </div>
+
+  <div class="card-grid">
+    <article class="card">
+      <h3>Bookings by service type</h3>
+      <% var services = Object.entries(report.bookingsByService); %>
+      <% if (services.length === 0) { %>
+        <p class="muted">No bookings this month.</p>
+      <% } else { %>
+        <table class="data-table">
+          <thead><tr><th>Service</th><th class="num">Bookings</th></tr></thead>
+          <tbody>
+            <% services.forEach(function (row) { %>
+              <tr><td><%= row[0] %></td><td class="num"><%= row[1] %></td></tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </article>
+
+    <article class="card">
+      <h3>Revenue by veterinarian</h3>
+      <% var vets = Object.entries(report.revenueByVet); %>
+      <% if (vets.length === 0) { %>
+        <p class="muted">No revenue this month.</p>
+      <% } else { %>
+        <table class="data-table">
+          <thead><tr><th>Veterinarian</th><th class="num">Revenue (<%= currency %>)</th></tr></thead>
+          <tbody>
+            <% vets.forEach(function (row) { %>
+              <tr><td><%= row[0] %></td><td class="num"><%= Number(row[1]).toFixed(2) %></td></tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </article>
+  </div>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

@@ -8,6 +8,8 @@ const db = require('../models');
 const { ROLES, ACCOUNT_STATUS, APPOINTMENT_STATUS, REVIEW_STATUS } = require('../models/enums');
 const emergencyService = require('../services/emergencyService');
 const reviewService = require('../services/reviewService');
+const reportService = require('../services/reportService');
+const pdfService = require('../services/pdfService');
 
 const User = db.User;
 const Service = db.Service;
@@ -334,6 +336,77 @@ exports.changeUserStatus = async (req, res, next) => {
 
     req.flash('success', `${user.fullName}'s account status set to ${status}.`);
     return res.redirect(USERS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Monthly reports (SR8.10-8.14)
+// ----------------------------------------------------------------------
+
+function reportPeriod(req) {
+  const period = (req.query.period || '').trim();
+  return /^\d{4}-\d{2}$/.test(period) ? period : reportService.currentPeriod();
+}
+
+// GET /admin/reports?period=YYYY-MM
+exports.reports = async (req, res, next) => {
+  try {
+    const period = reportPeriod(req);
+    const report = await reportService.generateReport(period);
+    res.render('pages/admin-reports', {
+      title: 'Reports - Vet Doctor',
+      report,
+      period,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET /admin/reports/export.pdf?period=YYYY-MM (SR8.14)
+exports.exportReportPdf = async (req, res, next) => {
+  try {
+    const period = reportPeriod(req);
+    const report = await reportService.generateReport(period);
+    return pdfService.streamReportPdf(res, { report, currency: req.app.locals.currency });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// GET /admin/reports/export.csv?period=YYYY-MM (SR8.14)
+exports.exportReportCsv = async (req, res, next) => {
+  try {
+    const period = reportPeriod(req);
+    const report = await reportService.generateReport(period);
+
+    const rows = [
+      ['Vet Doctor Monthly Report', period],
+      [],
+      ['Summary'],
+      ['Total bookings', report.totalBookings],
+      ['Total revenue', Number(report.totalRevenue).toFixed(2)],
+      ['Profit margin', Number(report.profitMargin).toFixed(2)],
+      ['New clients', report.newClients],
+      ['Active clients', report.activeClients],
+      ['Retention rate (%)', report.retentionRate],
+      [],
+      ['Bookings by service type'],
+      ...Object.entries(report.bookingsByService),
+      [],
+      ['Revenue by veterinarian'],
+      ...Object.entries(report.revenueByVet).map(([n, a]) => [n, Number(a).toFixed(2)]),
+    ];
+
+    const csv = rows
+      .map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="report-${period}.csv"`);
+    return res.send(csv);
   } catch (err) {
     return next(err);
   }

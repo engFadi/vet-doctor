@@ -100,26 +100,30 @@ Then open **http://localhost:3000** in your browser.
 
 > SQLite + Sequelize are introduced in **Task 1**. Until then no database is required.
 
-From Task 1 onward, the SQLite database file (`database.sqlite`) is created automatically on
-first run from the Sequelize models. The database file is git-ignored. Demo data is seeded in
-**Task 21** via:
+The SQLite database file (`database.sqlite`) is created automatically on first run from the
+Sequelize models, and the admin account + services are seeded automatically. The database file
+is git-ignored.
+
+To load realistic demo accounts, animals, slots, and sample appointments:
 
 ```bash
-node seeders/index.js     # (added in Task 21)
+npm run seed:demo     # idempotent - safe to run once
 ```
 
 ---
 
 ## Demo credentials
 
-The administrator is seeded automatically on first run (configurable via `.env`).
-Veterinarian and client demo accounts are added in Task 21.
+The administrator is seeded automatically on first run. The demo veterinarian and client
+accounts are created by running `npm run seed:demo` (see Database setup).
 
 | Role          | Email                  | Password    |
 | ------------- | ---------------------- | ----------- |
 | Administrator | `admin@vetdoctor.com`  | `Admin123!` |
-| Veterinarian  | _added in Task 21_     | _TBD_       |
-| Client        | _added in Task 21_     | _TBD_       |
+| Veterinarian  | `drlina@demo.com`      | `Demo123!`  |
+| Veterinarian  | `dromar@demo.com`      | `Demo123!`  |
+| Client        | `john@demo.com`        | `Demo123!`  |
+| Client        | `sara@demo.com`        | `Demo123!`  |
 
 > Change the admin credentials by setting `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`
 > **before** the first run (the admin is only seeded when none exists).
@@ -217,11 +221,11 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Let the admin change account status (active, suspended, deactivated, deleted) and record each
   action with reason and timestamp (SR8.8–SR8.9).
 
-- [ ] **Task 20 — Admin reports**
+- [x] **Task 20 — Admin reports**
   Generate monthly performance reports: bookings by service type, total revenue, revenue by
   veterinarian, and export options (SR8.10–SR8.14).
 
-- [ ] **Task 21 — Seed demo data**
+- [x] **Task 21 — Seed demo data**
   Seed realistic demo accounts (clients, approved vets), services, slots, animals, and sample
   appointments so the app is presentable out of the box.
 

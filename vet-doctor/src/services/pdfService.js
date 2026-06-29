@@ -66,4 +66,45 @@ function streamInvoicePdf(res, { appointment, invoice, currency }) {
   doc.end();
 }
 
-module.exports = { streamInvoicePdf };
+// Stream a monthly performance report PDF (SR8.14).
+function streamReportPdf(res, { report, currency }) {
+  const doc = new PDFDocument({ margin: 50, size: 'A4' });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="report-${report.period}.pdf"`);
+  doc.pipe(res);
+
+  const money = (n) => `${Number(n).toFixed(2)} ${currency}`;
+
+  doc.fontSize(22).fillColor('#2e7d6b').text('Vet Doctor');
+  doc.fontSize(14).fillColor('#000').text(`Monthly Report - ${report.period}`);
+  doc.moveDown();
+
+  doc.fontSize(12).text('Summary', { underline: true });
+  doc.fontSize(10)
+    .text(`Total bookings: ${report.totalBookings}`)
+    .text(`Total revenue: ${money(report.totalRevenue)}`)
+    .text(`Profit margin: ${money(report.profitMargin)}`)
+    .text(`New clients: ${report.newClients}`)
+    .text(`Active clients: ${report.activeClients}`)
+    .text(`Retention rate: ${report.retentionRate}%`);
+  doc.moveDown();
+
+  doc.fontSize(12).text('Bookings by service type', { underline: true });
+  doc.fontSize(10);
+  Object.entries(report.bookingsByService).forEach(([name, count]) => {
+    doc.text(name, { continued: true }).text(String(count), { align: 'right' });
+  });
+  if (Object.keys(report.bookingsByService).length === 0) doc.text('No bookings.');
+  doc.moveDown();
+
+  doc.fontSize(12).text('Revenue by veterinarian', { underline: true });
+  doc.fontSize(10);
+  Object.entries(report.revenueByVet).forEach(([name, amount]) => {
+    doc.text(name, { continued: true }).text(money(amount), { align: 'right' });
+  });
+  if (Object.keys(report.revenueByVet).length === 0) doc.text('No revenue.');
+
+  doc.end();
+}
+
+module.exports = { streamInvoicePdf, streamReportPdf };

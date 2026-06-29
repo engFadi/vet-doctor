@@ -34,4 +34,9 @@ router.post('/reviews/:id/remove', adminController.removeReview);
 router.get('/users', adminController.listUsers);
 router.post('/users/:id/status', adminController.changeUserStatus);
 
+// Monthly reports
+router.get('/reports', adminController.reports);
+router.get('/reports/export.pdf', adminController.exportReportPdf);
+router.get('/reports/export.csv', adminController.exportReportCsv);
+
 module.exports = router;
