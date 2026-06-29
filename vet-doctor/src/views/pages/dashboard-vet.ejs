@@ -61,9 +61,13 @@
     </article>
 
     <article class="card">
-      <h3>What's next</h3>
-      <p>Assigned appointments status tracking and medical records are added in the upcoming
-         tasks.</p>
+      <h3>Payment history</h3>
+      <p>Review payments for your visits and download invoices as PDF.</p>
+      <% if (user.isApproved) { %>
+        <a class="btn btn-secondary" href="/vet/payments">View payments</a>
+      <% } else { %>
+        <p class="muted">Available once your account is approved.</p>
+      <% } %>
     </article>
   </div>
 </section>

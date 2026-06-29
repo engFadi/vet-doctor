@@ -16,6 +16,7 @@ const emergencyService = require('../services/emergencyService');
 const notificationService = require('../services/notificationService');
 const invoiceService = require('../services/invoiceService');
 const paymentGateway = require('../services/paymentGateway');
+const pdfService = require('../services/pdfService');
 const { PAYMENT_METHOD, PAYMENT_STATUS } = require('../models/enums');
 
 const Invoice = db.Invoice;
@@ -701,6 +702,51 @@ exports.payCard = async (req, res, next) => {
 
     req.flash('error', `${result.reason} Please try again or choose another method.`);
     return res.redirect(`/client/appointments/${appointment.id}/invoice/pay-card`);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// GET /client/payments - payment history with optional date range (SR6.11, 6.13)
+exports.paymentHistory = async (req, res, next) => {
+  try {
+    const from = (req.query.from || '').trim();
+    const to = (req.query.to || '').trim();
+    const invoices = await invoiceService.getPaymentHistory({
+      appointmentWhere: { clientId: req.session.user.id },
+      from,
+      to,
+    });
+    res.render('pages/payments-history', {
+      title: 'Payment History - Vet Doctor',
+      invoices,
+      from,
+      to,
+      role: 'client',
+      paymentMethodLabel: invoiceService.paymentMethodLabel,
+      paymentStatusLabel: invoiceService.paymentStatusLabel,
+      basePath: '/client',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET /client/appointments/:id/invoice/pdf - download invoice PDF (SR6.14)
+exports.downloadInvoicePdf = async (req, res, next) => {
+  try {
+    const appointment = await invoiceService.loadInvoiceForPdf(req.params.id, {
+      clientId: req.session.user.id,
+    });
+    if (!appointment || !appointment.invoice) {
+      req.flash('error', 'No invoice is available for this appointment.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    return pdfService.streamInvoicePdf(res, {
+      appointment,
+      invoice: appointment.invoice,
+      currency: req.app.locals.currency,
+    });
   } catch (err) {
     return next(err);
   }

@@ -100,7 +100,11 @@
     </div>
   <% } %>
 
-  <p style="margin-top:1.5rem;"><a href="/client/appointments">&larr; Back to appointments</a></p>
+  <p style="margin-top:1.25rem;">
+    <a class="btn btn-secondary" href="/client/appointments/<%= appointment.id %>/invoice/pdf">Download PDF</a>
+  </p>
+
+  <p style="margin-top:1rem;"><a href="/client/appointments">&larr; Back to appointments</a></p>
 </section>
 
 <%- include('../partials/footer') %>

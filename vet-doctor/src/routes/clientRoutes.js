@@ -35,5 +35,9 @@ router.post('/appointments/:id/invoice/acknowledge', clientController.acknowledg
 router.post('/appointments/:id/invoice/pay-cash', clientController.payCash);
 router.get('/appointments/:id/invoice/pay-card', clientController.showCardForm);
 router.post('/appointments/:id/invoice/pay-card', clientController.payCard);
+router.get('/appointments/:id/invoice/pdf', clientController.downloadInvoicePdf);
+
+// Payment history
+router.get('/payments', clientController.paymentHistory);
 
 module.exports = router;
