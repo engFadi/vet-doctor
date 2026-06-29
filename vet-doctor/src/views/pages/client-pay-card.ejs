@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Pay by card</h1>
+  <p class="muted">Secure payment &mdash; amount due:
+    <strong><%= Number(invoice.totalAmount).toFixed(2) %> <%= currency %></strong></p>
+
+  <%- include('../partials/form-errors') %>
+
+  <form action="/client/appointments/<%= appointment.id %>/invoice/pay-card" method="POST" class="form">
+    <label for="cardHolderName">Cardholder name</label>
+    <input type="text" id="cardHolderName" name="cardHolderName" required />
+
+    <label for="cardNumber">Card number</label>
+    <input type="text" id="cardNumber" name="cardNumber" inputmode="numeric"
+           placeholder="4111 1111 1111 1111" required />
+
+    <div class="form-row">
+      <div>
+        <label for="expiryDate">Expiry (MM/YY)</label>
+        <input type="text" id="expiryDate" name="expiryDate" placeholder="12/29" required />
+      </div>
+      <div>
+        <label for="cvv">CVV</label>
+        <input type="text" id="cvv" name="cvv" inputmode="numeric" placeholder="123" required />
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Pay <%= Number(invoice.totalAmount).toFixed(2) %> <%= currency %></button>
+  </form>
+
+  <p class="muted" style="margin-top:0.75rem;">
+    This is a mock gateway. Your full card number is never stored &mdash; only a masked reference.
+  </p>
+
+  <p style="margin-top:1rem;">
+    <a href="/client/appointments/<%= appointment.id %>/invoice">&larr; Back to invoice</a>
+  </p>
+</section>
+
+<%- include('../partials/footer') %>

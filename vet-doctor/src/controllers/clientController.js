@@ -15,6 +15,7 @@ const {
 const emergencyService = require('../services/emergencyService');
 const notificationService = require('../services/notificationService');
 const invoiceService = require('../services/invoiceService');
+const paymentGateway = require('../services/paymentGateway');
 const { PAYMENT_METHOD, PAYMENT_STATUS } = require('../models/enums');
 
 const Invoice = db.Invoice;
@@ -542,17 +543,24 @@ exports.payCash = async (req, res, next) => {
       req.flash('error', 'Please acknowledge the additional charges before paying.');
       return res.redirect(invoiceUrl);
     }
-    if (invoice.payment) {
-      req.flash('error', 'A payment is already in progress for this invoice.');
+    // A cash payment already awaiting confirmation.
+    if (
+      invoice.payment &&
+      invoice.payment.paymentMethod === PAYMENT_METHOD.CASH_ON_DELIVERY &&
+      invoice.payment.paymentStatus === PAYMENT_STATUS.PENDING
+    ) {
+      req.flash('error', 'A cash payment is already awaiting confirmation.');
       return res.redirect(invoiceUrl);
     }
 
     // Cash starts PENDING until the veterinarian confirms receipt (SR6.8).
-    await Payment.create({
-      invoiceId: invoice.id,
+    await invoiceService.upsertPayment(invoice, {
       amount: invoice.totalAmount,
       paymentMethod: PAYMENT_METHOD.CASH_ON_DELIVERY, // SR6.3
       paymentStatus: PAYMENT_STATUS.PENDING,
+      paymentDate: null,
+      maskedCardReference: null,
+      transactionReference: null,
     });
 
     await notificationService.notify({
@@ -566,6 +574,133 @@ exports.payCash = async (req, res, next) => {
 
     req.flash('success', 'Cash selected. Please pay the veterinarian; they will confirm receipt.');
     return res.redirect(invoiceUrl);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// Shared guard: invoice must exist, be unpaid, and have acknowledged charges.
+function payableInvoiceOrRedirect(appointment, req, res) {
+  const invoiceUrl = `/client/appointments/${appointment.id}/invoice`;
+  const invoice = appointment.invoice;
+  if (!invoice) {
+    req.flash('error', 'Invoice not found.');
+    res.redirect(APPOINTMENTS_LIST);
+    return null;
+  }
+  if (invoice.status === PAYMENT_STATUS.PAID) {
+    req.flash('error', 'This invoice is already paid.');
+    res.redirect(invoiceUrl);
+    return null;
+  }
+  if (Number(invoice.additionalCharges) > 0 && !invoice.additionalChargesAcknowledged) {
+    req.flash('error', 'Please acknowledge the additional charges before paying.');
+    res.redirect(invoiceUrl);
+    return null;
+  }
+  return invoice;
+}
+
+// GET /client/appointments/:id/invoice/pay-card - the (mock) gateway form (SR6.2)
+exports.showCardForm = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithInvoice(req, req.params.id);
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    const invoice = payableInvoiceOrRedirect(appointment, req, res);
+    if (!invoice) return undefined;
+
+    return res.render('pages/client-pay-card', {
+      title: 'Pay by Card - Vet Doctor',
+      appointment,
+      invoice,
+      errors: [],
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /client/appointments/:id/invoice/pay-card - process card payment
+exports.payCard = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithInvoice(req, req.params.id);
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    const invoice = payableInvoiceOrRedirect(appointment, req, res);
+    if (!invoice) return undefined;
+
+    const card = {
+      cardNumber: (req.body.cardNumber || '').trim(),
+      cardHolderName: (req.body.cardHolderName || '').trim(),
+      expiryDate: (req.body.expiryDate || '').trim(),
+      cvv: (req.body.cvv || '').trim(),
+    };
+
+    // Validate card input before contacting the gateway.
+    const errors = [];
+    if (!card.cardHolderName) errors.push('Cardholder name is required.');
+    const formatError = paymentGateway.validateCardInput(card);
+    if (formatError) errors.push(formatError);
+    if (errors.length > 0) {
+      return res.status(400).render('pages/client-pay-card', {
+        title: 'Pay by Card - Vet Doctor',
+        appointment,
+        invoice,
+        errors,
+      });
+    }
+
+    // Forward to the (mocked) gateway. The full card number is never stored.
+    const result = paymentGateway.authorize({
+      cardNumber: card.cardNumber,
+      amount: Number(invoice.totalAmount),
+    });
+    const invoiceUrl = `/client/appointments/${appointment.id}/invoice`;
+
+    if (result.status === 'approved') {
+      // SR6.14: record payment with only a masked card reference (SR6.16).
+      await invoiceService.upsertPayment(invoice, {
+        amount: invoice.totalAmount,
+        paymentMethod: PAYMENT_METHOD.CREDIT_DEBIT_CARD,
+        paymentStatus: PAYMENT_STATUS.PAID,
+        paymentDate: new Date(),
+        maskedCardReference: result.maskedCardReference,
+        transactionReference: result.transactionReference,
+      });
+      invoice.status = PAYMENT_STATUS.PAID; // SR6.7
+      invoice.issueDate = invoiceService.todayISO();
+      await invoice.save();
+
+      await notificationService.notify({
+        userId: req.session.user.id,
+        subject: 'Payment successful',
+        body: `Your card payment of ${Number(invoice.totalAmount).toFixed(
+          2
+        )} was approved. Your invoice is now paid.`,
+        appointmentId: appointment.id,
+      });
+
+      req.flash('success', 'Payment approved. Your invoice is now paid.');
+      return res.redirect(invoiceUrl);
+    }
+
+    // E1 (declined) / E2 (gateway error): record the failed attempt, keep unpaid.
+    await invoiceService.upsertPayment(invoice, {
+      amount: invoice.totalAmount,
+      paymentMethod: PAYMENT_METHOD.CREDIT_DEBIT_CARD,
+      paymentStatus: PAYMENT_STATUS.FAILED,
+      paymentDate: null,
+      maskedCardReference: null,
+      transactionReference: null,
+    });
+
+    req.flash('error', `${result.reason} Please try again or choose another method.`);
+    return res.redirect(`/client/appointments/${appointment.id}/invoice/pay-card`);
   } catch (err) {
     return next(err);
   }

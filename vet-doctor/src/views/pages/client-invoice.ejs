@@ -72,16 +72,21 @@
              && payment.paymentStatus === statuses.PENDING) { %>
         <p class="muted">You chose to pay by cash. Awaiting the veterinarian's confirmation of receipt.</p>
       <% } else { %>
+        <% var blocked = hasAdditional && !invoice.additionalChargesAcknowledged; %>
+        <% if (payment && payment.paymentStatus === statuses.FAILED) { %>
+          <p class="alert alert-error">A previous card payment failed. You can try again or pay by cash.</p>
+        <% } %>
         <p>Choose how you would like to pay:</p>
         <div class="action-row">
           <form action="/client/appointments/<%= appointment.id %>/invoice/pay-cash" method="POST">
-            <button type="submit" class="btn btn-primary"
-              <%= (hasAdditional && !invoice.additionalChargesAcknowledged) ? 'disabled' : '' %>>
-              Pay by Cash
-            </button>
+            <button type="submit" class="btn btn-secondary" <%= blocked ? 'disabled' : '' %>>Pay by Cash</button>
           </form>
+          <% if (blocked) { %>
+            <button class="btn btn-primary" disabled>Pay by Card</button>
+          <% } else { %>
+            <a class="btn btn-primary" href="/client/appointments/<%= appointment.id %>/invoice/pay-card">Pay by Card</a>
+          <% } %>
         </div>
-        <p class="muted" style="margin-top:0.6rem;">Online card payment is added in the next step.</p>
       <% } %>
     </div>
   <% } else { %>

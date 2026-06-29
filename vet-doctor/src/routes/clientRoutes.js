@@ -33,5 +33,7 @@ router.post('/appointments/:id/cancel', clientController.cancelAppointment);
 router.get('/appointments/:id/invoice', clientController.showInvoice);
 router.post('/appointments/:id/invoice/acknowledge', clientController.acknowledgeCharges);
 router.post('/appointments/:id/invoice/pay-cash', clientController.payCash);
+router.get('/appointments/:id/invoice/pay-card', clientController.showCardForm);
+router.post('/appointments/:id/invoice/pay-card', clientController.payCard);
 
 module.exports = router;

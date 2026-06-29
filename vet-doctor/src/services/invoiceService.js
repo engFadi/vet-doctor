@@ -28,6 +28,18 @@ async function ensureInvoiceForAppointment(appointment) {
   });
 }
 
+// Create or update the single payment row for an invoice (one per invoice).
+async function upsertPayment(invoice, fields) {
+  let payment = await db.Payment.findOne({ where: { invoiceId: invoice.id } });
+  if (payment) {
+    payment.set(fields);
+    await payment.save();
+  } else {
+    payment = await db.Payment.create({ invoiceId: invoice.id, ...fields });
+  }
+  return payment;
+}
+
 const PAYMENT_METHOD_LABELS = {
   [PAYMENT_METHOD.CASH_ON_DELIVERY]: 'Cash',
   [PAYMENT_METHOD.CREDIT_DEBIT_CARD]: 'Credit/Debit Card',
@@ -50,6 +62,7 @@ function paymentStatusLabel(status) {
 
 module.exports = {
   ensureInvoiceForAppointment,
+  upsertPayment,
   paymentMethodLabel,
   paymentStatusLabel,
   todayISO,

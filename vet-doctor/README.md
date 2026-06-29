@@ -192,9 +192,10 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Generate invoices from the base service charge plus post-visit charges, support cash and card
   payment methods, and track invoice/payment status (SR6.1–SR6.11, Use Case: Make Payment).
 
-- [ ] **Task 14 — Mock payment gateway**
+- [x] **Task 14 — Mock payment gateway**
   Add a mocked external Payment Gateway (and Bank) that authorizes card payments and returns an
   approve/reject result, storing only a masked card reference (SR6.2, SR6.15–SR6.16).
+  Test cards: ending `0000` → declined, starting `9999` → gateway error, anything else → approved.
 
 - [ ] **Task 15 — Payment history and invoice download/view**
   Provide per-user payment history with date-range filtering and let users view/download invoices
