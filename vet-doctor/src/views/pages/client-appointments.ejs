@@ -58,6 +58,7 @@
                 <% } %>
                 <% if (appt.status === statuses.COMPLETED) { %>
                   <a class="btn btn-small btn-secondary" href="/client/appointments/<%= appt.id %>/record">View record</a>
+                  <a class="btn btn-small btn-secondary" href="/client/appointments/<%= appt.id %>/invoice">Invoice</a>
                 <% } %>
                 <% if (!cancellable && appt.status !== statuses.COMPLETED) { %>
                   <span class="muted">-</span>

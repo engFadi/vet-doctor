@@ -29,4 +29,9 @@ router.get('/appointments', clientController.listAppointments);
 router.get('/appointments/:id/record', clientController.viewRecord);
 router.post('/appointments/:id/cancel', clientController.cancelAppointment);
 
+// Invoice & payment
+router.get('/appointments/:id/invoice', clientController.showInvoice);
+router.post('/appointments/:id/invoice/acknowledge', clientController.acknowledgeCharges);
+router.post('/appointments/:id/invoice/pay-cash', clientController.payCash);
+
 module.exports = router;

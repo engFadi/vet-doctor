@@ -21,6 +21,9 @@ db.Appointment = require('./Appointment')(sequelize);
 db.Notification = require('./Notification')(sequelize);
 db.MedicalRecord = require('./MedicalRecord')(sequelize);
 db.Prescription = require('./Prescription')(sequelize);
+db.Invoice = require('./Invoice')(sequelize);
+db.InvoiceItem = require('./InvoiceItem')(sequelize);
+db.Payment = require('./Payment')(sequelize);
 
 // --- Define associations (once all models are loaded) ---
 Object.values(db).forEach((model) => {

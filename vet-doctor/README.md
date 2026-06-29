@@ -188,7 +188,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Let veterinarians add post-visit notes, medical records, and prescriptions for completed visits,
   linked to the relevant animal (SR5.7–SR5.12).
 
-- [ ] **Task 13 — Invoice and payment workflow**
+- [x] **Task 13 — Invoice and payment workflow**
   Generate invoices from the base service charge plus post-visit charges, support cash and card
   payment methods, and track invoice/payment status (SR6.1–SR6.11, Use Case: Make Payment).
 

@@ -14,6 +14,12 @@ const {
 } = require('../models/enums');
 const emergencyService = require('../services/emergencyService');
 const notificationService = require('../services/notificationService');
+const invoiceService = require('../services/invoiceService');
+const { PAYMENT_METHOD, PAYMENT_STATUS } = require('../models/enums');
+
+const Invoice = db.Invoice;
+const InvoiceItem = db.InvoiceItem;
+const Payment = db.Payment;
 
 const Animal = db.Animal;
 const Service = db.Service;
@@ -454,6 +460,114 @@ exports.viewRecord = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+// Load an appointment owned by the client, with its full invoice graph.
+function findOwnAppointmentWithInvoice(req, id) {
+  return Appointment.findOne({
+    where: { id, clientId: req.session.user.id },
+    include: [
+      { model: Service, as: 'service' },
+      { model: Animal, as: 'animal' },
+      { model: User, as: 'veterinarian', attributes: ['id', 'fullName'] },
+      {
+        model: Invoice,
+        as: 'invoice',
+        include: [
+          { model: InvoiceItem, as: 'items' },
+          { model: Payment, as: 'payment' },
+        ],
+      },
+    ],
+  });
+}
+
+// GET /client/appointments/:id/invoice - itemized invoice + pay options (SR6.9)
+exports.showInvoice = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithInvoice(req, req.params.id);
+    if (!appointment || !appointment.invoice) {
+      req.flash('error', 'No invoice is available for this appointment yet.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    res.render('pages/client-invoice', {
+      title: 'Invoice - Vet Doctor',
+      appointment,
+      invoice: appointment.invoice,
+      methods: PAYMENT_METHOD,
+      statuses: PAYMENT_STATUS,
+      paymentMethodLabel: invoiceService.paymentMethodLabel,
+      paymentStatusLabel: invoiceService.paymentStatusLabel,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /client/appointments/:id/invoice/acknowledge - acknowledge charges (SR6.6)
+exports.acknowledgeCharges = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithInvoice(req, req.params.id);
+    if (!appointment || !appointment.invoice) {
+      req.flash('error', 'Invoice not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    appointment.invoice.additionalChargesAcknowledged = true;
+    await appointment.invoice.save();
+    req.flash('success', 'Additional charges acknowledged.');
+    return res.redirect(`/client/appointments/${appointment.id}/invoice`);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /client/appointments/:id/invoice/pay-cash - choose cash payment (SR6.1)
+exports.payCash = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithInvoice(req, req.params.id);
+    if (!appointment || !appointment.invoice) {
+      req.flash('error', 'Invoice not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    const invoice = appointment.invoice;
+    const invoiceUrl = `/client/appointments/${appointment.id}/invoice`;
+
+    if (invoice.status === PAYMENT_STATUS.PAID) {
+      req.flash('error', 'This invoice is already paid.');
+      return res.redirect(invoiceUrl);
+    }
+    // SR6.6: additional charges must be acknowledged first.
+    if (Number(invoice.additionalCharges) > 0 && !invoice.additionalChargesAcknowledged) {
+      req.flash('error', 'Please acknowledge the additional charges before paying.');
+      return res.redirect(invoiceUrl);
+    }
+    if (invoice.payment) {
+      req.flash('error', 'A payment is already in progress for this invoice.');
+      return res.redirect(invoiceUrl);
+    }
+
+    // Cash starts PENDING until the veterinarian confirms receipt (SR6.8).
+    await Payment.create({
+      invoiceId: invoice.id,
+      amount: invoice.totalAmount,
+      paymentMethod: PAYMENT_METHOD.CASH_ON_DELIVERY, // SR6.3
+      paymentStatus: PAYMENT_STATUS.PENDING,
+    });
+
+    await notificationService.notify({
+      userId: appointment.veterinarianId,
+      subject: 'Cash payment pending',
+      body: `The client chose to pay ${Number(invoice.totalAmount).toFixed(
+        2
+      )} in cash. Please confirm receipt after the visit.`,
+      appointmentId: appointment.id,
+    });
+
+    req.flash('success', 'Cash selected. Please pay the veterinarian; they will confirm receipt.');
+    return res.redirect(invoiceUrl);
+  } catch (err) {
+    return next(err);
   }
 };
 

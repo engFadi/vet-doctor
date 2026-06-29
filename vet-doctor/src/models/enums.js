@@ -46,10 +46,26 @@ const APPOINTMENT_STATUS = {
   ESCALATED: 'ESCALATED',
 };
 
+// PaymentMethod enumeration.
+const PAYMENT_METHOD = {
+  CASH_ON_DELIVERY: 'CASH_ON_DELIVERY',
+  CREDIT_DEBIT_CARD: 'CREDIT_DEBIT_CARD',
+};
+
+// PaymentStatus enumeration (shared by Invoice and Payment).
+const PAYMENT_STATUS = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED',
+};
+
 module.exports = {
   ROLES,
   ACCOUNT_STATUS,
   SERVICE_TYPE,
   AVAILABILITY_STATUS,
   APPOINTMENT_STATUS,
+  PAYMENT_METHOD,
+  PAYMENT_STATUS,
 };

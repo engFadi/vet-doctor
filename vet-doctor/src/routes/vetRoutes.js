@@ -50,4 +50,8 @@ router.get('/appointments/:id/record', vetController.showRecordForm);
 router.post('/appointments/:id/record', uploadAttachment, vetController.createRecord);
 router.post('/records/:recordId/prescriptions', vetController.addPrescription);
 
+// Invoice charges & cash confirmation
+router.post('/appointments/:id/charges', vetController.addCharge);
+router.post('/appointments/:id/confirm-cash', vetController.confirmCash);
+
 module.exports = router;

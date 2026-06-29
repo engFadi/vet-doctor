@@ -467,6 +467,14 @@ body {
   letter-spacing: 0.03em;
 }
 
+.data-table .num {
+  text-align: right;
+}
+
+.data-table tfoot td {
+  border-top: 2px solid var(--border);
+}
+
 .btn-small {
   padding: 0.3rem 0.7rem;
   font-size: 0.85rem;

@@ -1,0 +1,101 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Invoice</h1>
+
+  <div class="card" style="margin-bottom:1.25rem;">
+    <h3>Visit details</h3>
+    <ul class="detail-list">
+      <li><strong>Service date:</strong> <%= new Date(appointment.appointmentDateTime).toLocaleDateString() %></li>
+      <li><strong>Veterinarian:</strong> <%= appointment.veterinarian ? 'Dr. ' + appointment.veterinarian.fullName : '-' %></li>
+      <li><strong>Service:</strong> <%= appointment.service ? appointment.service.name : '-' %></li>
+      <li><strong>Animal:</strong> <%= appointment.animal ? appointment.animal.name : '-' %></li>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-bottom:1.25rem;">
+    <h3>Charges</h3>
+    <table class="data-table">
+      <thead><tr><th>Description</th><th class="num">Amount (<%= currency %>)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><%= appointment.service ? appointment.service.name : 'Service' %> (base charge)</td>
+          <td class="num"><%= Number(invoice.baseAmount).toFixed(2) %></td>
+        </tr>
+        <% (invoice.items || []).forEach(function (item) { %>
+          <tr>
+            <td><%= item.description %></td>
+            <td class="num"><%= Number(item.amount).toFixed(2) %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td class="num"><strong><%= Number(invoice.totalAmount).toFixed(2) %> <%= currency %></strong></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <p style="margin-top:0.75rem;">
+      <strong>Status:</strong>
+      <% if (invoice.status === statuses.PAID) { %>
+        <span class="badge badge-success">Paid</span>
+      <% } else { %>
+        <span class="badge badge-warning">Unpaid</span>
+      <% } %>
+    </p>
+  </div>
+
+  <%
+    var hasAdditional = Number(invoice.additionalCharges) > 0;
+    var payment = invoice.payment;
+    var paid = invoice.status === statuses.PAID;
+  %>
+
+  <% if (!paid) { %>
+    <% if (hasAdditional && !invoice.additionalChargesAcknowledged) { %>
+      <div class="card" style="margin-bottom:1.25rem;">
+        <h3>Acknowledge additional charges</h3>
+        <p>This invoice includes post-visit charges totalling
+          <strong><%= Number(invoice.additionalCharges).toFixed(2) %> <%= currency %></strong>.
+          Please acknowledge them before paying.</p>
+        <form action="/client/appointments/<%= appointment.id %>/invoice/acknowledge" method="POST">
+          <button type="submit" class="btn btn-primary">I acknowledge the charges</button>
+        </form>
+      </div>
+    <% } %>
+
+    <div class="card">
+      <h3>Payment</h3>
+      <% if (payment && payment.paymentMethod === methods.CASH_ON_DELIVERY
+             && payment.paymentStatus === statuses.PENDING) { %>
+        <p class="muted">You chose to pay by cash. Awaiting the veterinarian's confirmation of receipt.</p>
+      <% } else { %>
+        <p>Choose how you would like to pay:</p>
+        <div class="action-row">
+          <form action="/client/appointments/<%= appointment.id %>/invoice/pay-cash" method="POST">
+            <button type="submit" class="btn btn-primary"
+              <%= (hasAdditional && !invoice.additionalChargesAcknowledged) ? 'disabled' : '' %>>
+              Pay by Cash
+            </button>
+          </form>
+        </div>
+        <p class="muted" style="margin-top:0.6rem;">Online card payment is added in the next step.</p>
+      <% } %>
+    </div>
+  <% } else { %>
+    <div class="card">
+      <h3>Payment</h3>
+      <p>Paid by <strong><%= payment ? paymentMethodLabel(payment.paymentMethod) : '-' %></strong>
+        <% if (payment && payment.paymentDate) { %>
+          on <%= new Date(payment.paymentDate).toLocaleString() %>
+        <% } %>.
+      </p>
+    </div>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/client/appointments">&larr; Back to appointments</a></p>
+</section>
+
+<%- include('../partials/footer') %>

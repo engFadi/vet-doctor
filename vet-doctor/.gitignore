@@ -4,10 +4,11 @@ node_modules/
 # Environment variables
 .env
 
-# SQLite database files (created from Task 1 onward)
+# SQLite database files (app database + throwaway test.sqlite used for testing)
 *.sqlite
 *.sqlite3
 database.sqlite
+test.sqlite
 
 # Logs
 logs/

@@ -8,12 +8,17 @@ const db = require('../models');
 const { AVAILABILITY_STATUS, APPOINTMENT_STATUS } = require('../models/enums');
 const emergencyService = require('../services/emergencyService');
 const notificationService = require('../services/notificationService');
+const invoiceService = require('../services/invoiceService');
 const { allowedTransitions, statusLabel } = require('../utils/appointmentStatus');
+const { PAYMENT_METHOD, PAYMENT_STATUS } = require('../models/enums');
 
 const Slot = db.AvailabilitySlot;
 const Appointment = db.Appointment;
 const MedicalRecord = db.MedicalRecord;
 const Prescription = db.Prescription;
+const Invoice = db.Invoice;
+const InvoiceItem = db.InvoiceItem;
+const Payment = db.Payment;
 const SLOTS_LIST = '/vet/slots';
 const EMERGENCIES_LIST = '/vet/emergencies';
 const APPOINTMENTS_LIST = '/vet/appointments';
@@ -300,6 +305,11 @@ exports.updateAppointmentStatus = async (req, res, next) => {
 
     await appointment.updateStatus(nextStatus);
 
+    // On completion, generate the invoice from the base service charge (SR6.4).
+    if (nextStatus === APPOINTMENT_STATUS.COMPLETED) {
+      await invoiceService.ensureInvoiceForAppointment(appointment);
+    }
+
     // Notify the client of the status change (SR5.6 / SR7.4).
     await notificationService.notify({
       userId: appointment.clientId,
@@ -321,7 +331,7 @@ exports.updateAppointmentStatus = async (req, res, next) => {
 // Medical records & prescriptions (SR5.7-SR5.14)
 // ----------------------------------------------------------------------
 
-// Load an appointment assigned to this vet, with its record + prescriptions.
+// Load an appointment assigned to this vet, with its record + invoice.
 function findOwnAppointmentWithRecord(req, id) {
   return Appointment.findOne({
     where: { id, veterinarianId: req.session.user.id }, // SR5.13
@@ -333,6 +343,14 @@ function findOwnAppointmentWithRecord(req, id) {
         model: MedicalRecord,
         as: 'medicalRecord',
         include: [{ model: Prescription, as: 'prescriptions' }],
+      },
+      {
+        model: Invoice,
+        as: 'invoice',
+        include: [
+          { model: InvoiceItem, as: 'items' },
+          { model: Payment, as: 'payment' },
+        ],
       },
     ],
   });
@@ -354,10 +372,107 @@ exports.showRecordForm = async (req, res, next) => {
       title: 'Medical Record - Vet Doctor',
       appointment,
       record: appointment.medicalRecord,
+      invoice: appointment.invoice,
       maxNotes: MedicalRecord.MAX_NOTES,
+      paymentMethodLabel: invoiceService.paymentMethodLabel,
+      paymentStatusLabel: invoiceService.paymentStatusLabel,
+      statuses: PAYMENT_STATUS,
+      methods: PAYMENT_METHOD,
     });
   } catch (err) {
     next(err);
+  }
+};
+
+// POST /vet/appointments/:id/charges - add a post-visit charge (SR6.5-6.6)
+exports.addCharge = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithRecord(req, req.params.id);
+    if (!appointment || !appointment.invoice) {
+      req.flash('error', 'Invoice not found for this appointment.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    const recordUrl = `/vet/appointments/${appointment.id}/record`;
+
+    if (appointment.invoice.status === PAYMENT_STATUS.PAID) {
+      req.flash('error', 'This invoice is already paid and cannot be changed.');
+      return res.redirect(recordUrl);
+    }
+
+    const description = (req.body.description || '').trim();
+    const amount = Number(req.body.amount);
+    if (!description) {
+      req.flash('error', 'Charge description is required.');
+      return res.redirect(recordUrl);
+    }
+    if (Number.isNaN(amount) || amount <= 0) {
+      req.flash('error', 'Charge amount must be a positive number.');
+      return res.redirect(recordUrl);
+    }
+
+    await InvoiceItem.create({ invoiceId: appointment.invoice.id, description, amount });
+    await appointment.invoice.recalculate();
+
+    // Adding charges resets acknowledgement, so the client must re-confirm (SR6.6).
+    appointment.invoice.additionalChargesAcknowledged = false;
+    await appointment.invoice.save();
+
+    await notificationService.notify({
+      userId: appointment.clientId,
+      subject: 'Additional charge added',
+      body: `A post-visit charge "${description}" was added to your invoice. Please review and acknowledge it.`,
+      appointmentId: appointment.id,
+    });
+
+    req.flash('success', 'Charge added to the invoice.');
+    return res.redirect(recordUrl);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /vet/appointments/:id/confirm-cash - confirm cash receipt (SR6.8)
+exports.confirmCash = async (req, res, next) => {
+  try {
+    const appointment = await findOwnAppointmentWithRecord(req, req.params.id);
+    if (!appointment || !appointment.invoice) {
+      req.flash('error', 'Invoice not found for this appointment.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    const recordUrl = `/vet/appointments/${appointment.id}/record`;
+    const payment = appointment.invoice.payment;
+
+    if (
+      !payment ||
+      payment.paymentMethod !== PAYMENT_METHOD.CASH_ON_DELIVERY ||
+      payment.paymentStatus !== PAYMENT_STATUS.PENDING
+    ) {
+      req.flash('error', 'There is no pending cash payment to confirm.');
+      return res.redirect(recordUrl);
+    }
+
+    payment.paymentStatus = PAYMENT_STATUS.PAID;
+    payment.paymentDate = new Date();
+    await payment.save();
+
+    appointment.invoice.status = PAYMENT_STATUS.PAID;
+    appointment.invoice.issueDate = invoiceService.todayISO();
+    await appointment.invoice.save();
+
+    // Invoice/receipt generated and sent to the client (SR6.8, SR6.10).
+    await notificationService.notify({
+      userId: appointment.clientId,
+      subject: 'Payment received',
+      body: `Your cash payment of ${Number(payment.amount).toFixed(
+        2
+      )} has been confirmed. Your invoice is now paid.`,
+      appointmentId: appointment.id,
+    });
+
+    req.flash('success', 'Cash payment confirmed. The invoice is now paid.');
+    return res.redirect(recordUrl);
+  } catch (err) {
+    return next(err);
   }
 };
 
