@@ -1,81 +1,58 @@
 /* ----------------------------------------------------------------------
-   Vet Doctor - base styles (Task 0)
-   Simple, dependency-free CSS. Replaced/extended with Bootstrap in Task 22.
+   Vet Doctor - theme layer (Task 22)
+   Loaded after Bootstrap 5 to apply the green brand theme and style the
+   custom components. Bootstrap provides the reset, grid, and navbar.
    ---------------------------------------------------------------------- */
 
 :root {
   --primary: #2e7d6b;
   --primary-dark: #245a4d;
   --secondary: #f4a261;
-  --text: #233;
+  --text: #223333;
   --muted: #6b7a78;
   --bg: #f6faf8;
   --card-bg: #ffffff;
   --border: #e0e8e5;
 }
 
-* {
-  box-sizing: border-box;
-}
-
 body {
-  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--text);
   background: var(--bg);
-  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main.container {
+  flex: 1 0 auto;
 }
 
 .container {
-  width: 100%;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 0 1rem;
+  max-width: 1040px;
 }
 
-/* Header */
-.site-header {
+/* Navbar (Bootstrap navbar themed green) */
+.site-header.navbar {
   background: var(--primary);
-  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 0.85rem;
-  padding-bottom: 0.85rem;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #fff;
-  text-decoration: none;
+.site-header .navbar-brand {
   font-weight: 700;
-  font-size: 1.25rem;
+  color: #fff;
+}
+
+.site-header .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.site-header .nav-link:hover {
+  color: #fff;
 }
 
 .brand-mark {
-  font-size: 1.4rem;
-}
-
-.main-nav {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.main-nav a {
-  color: #fff;
-  text-decoration: none;
-  opacity: 0.9;
-}
-
-.main-nav a:hover {
-  opacity: 1;
-  text-decoration: underline;
+  font-size: 1.25rem;
 }
 
 .nav-user {

@@ -4,31 +4,46 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><%= title %></title>
+  <link href="/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="/">
-        <span class="brand-mark">&#128062;</span>
-        <span class="brand-name">Vet Doctor</span>
+  <nav class="navbar navbar-expand-md navbar-dark site-header">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <span class="brand-mark">&#128062;</span> Vet Doctor
       </a>
-      <nav class="main-nav">
-        <a href="/">Home</a>
-        <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/veterinarians">Veterinarians</a>
-          <a href="/notifications" class="nav-notif">Notifications<% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %> <span class="notif-badge"><%= unreadCount %></span><% } %></a>
-          <span class="nav-user">Hi, <%= currentUser.fullName %> (<%= currentUser.role %>)</span>
-          <form action="/logout" method="POST" class="nav-logout">
-            <button type="submit" class="link-button">Log out</button>
-          </form>
-        <% } else { %>
-          <a href="/login">Log in</a>
-          <a href="/register">Register</a>
-        <% } %>
-      </nav>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+              data-bs-target="#mainNav" aria-controls="mainNav"
+              aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-md-0 align-items-md-center">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+            <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="/veterinarians">Veterinarians</a></li>
+            <li class="nav-item">
+              <a class="nav-link" href="/notifications">
+                Notifications<% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+                  <span class="badge rounded-pill notif-badge"><%= unreadCount %></span>
+                <% } %>
+              </a>
+            </li>
+            <li class="nav-item"><span class="navbar-text nav-user ms-md-2">Hi, <%= currentUser.fullName %> (<%= currentUser.role %>)</span></li>
+            <li class="nav-item ms-md-2">
+              <form action="/logout" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-light">Log out</button>
+              </form>
+            </li>
+          <% } else { %>
+            <li class="nav-item"><a class="nav-link" href="/login">Log in</a></li>
+            <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
+          <% } %>
+        </ul>
+      </div>
     </div>
-  </header>
-  <main class="container">
+  </nav>
+  <main class="container py-4">
     <%- include('flash') %>

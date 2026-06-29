@@ -19,7 +19,9 @@ Report for **Vet Doctor (Group 10)**, built gradually as a series of small, GitH
 - **bcrypt** — password hashing (Task 2)
 - **express-session** + flash messages — sessions and user feedback (Task 2)
 - **dotenv** — environment configuration
-- **Bootstrap / simple CSS** — styling
+- **multer** — file uploads (medical-record attachments)
+- **pdfkit** — invoice & report PDF generation
+- **Bootstrap 5** (vendored locally in `public/`) + a custom green theme — styling
 - **MVC architecture** — routes / controllers / models / services / views
 
 ### MVC conventions
@@ -43,26 +45,35 @@ vet-doctor/
 ├── .env.example
 ├── .gitignore
 ├── README.md
-├── server.js
+├── server.js                      # app entry: middleware, routes, background sweeps
+├── docs/DOMAIN_MODEL.md           # transcribed class model (source of truth)
 ├── src/
-│   ├── config/          # database.js (Sequelize) - Task 1
-│   ├── models/          # Sequelize models - Task 2+
-│   ├── controllers/     # request logic
-│   │   └── homeController.js
-│   ├── routes/
-│   │   └── indexRoutes.js
-│   ├── middleware/      # auth / role guards - Task 2+
-│   ├── services/        # mocked Payment Gateway & Notification Service - later
+│   ├── config/database.js         # Sequelize + SQLite connection
+│   ├── models/                    # User, Service, AvailabilitySlot, Animal,
+│   │                              # Appointment, Notification, MedicalRecord,
+│   │                              # Prescription, Invoice, InvoiceItem, Payment,
+│   │                              # Review, ConsultationRequest, AdminAction,
+│   │                              # PerformanceReport, enums.js, index.js
+│   ├── controllers/               # home, auth, register, dashboard, client,
+│   │                              # vet, admin, notification, directory
+│   ├── routes/                    # one router per area (auth, client, vet, admin, …)
+│   ├── middleware/                # auth (guards), flash, notifications, upload
+│   ├── services/                  # notificationService, emergencyService,
+│   │                              # reminderService, invoiceService, paymentGateway,
+│   │                              # reviewService, reportService, pdfService
+│   ├── utils/                     # validators, appointmentStatus
 │   └── views/
-│       ├── layouts/
-│       ├── partials/    # header.ejs, footer.ejs
-│       └── pages/       # home.ejs
+│       ├── partials/              # header.ejs, footer.ejs, flash.ejs, form-errors.ejs
+│       └── pages/                 # all page templates
 ├── public/
-│   ├── css/style.css
-│   ├── js/
+│   ├── css/                       # style.css (theme) + bootstrap.min.css (vendored)
+│   ├── js/                        # bootstrap.bundle.min.js
 │   └── images/
-└── seeders/             # demo data - Task 21
+└── seeders/                       # adminSeeder, serviceSeeder, demoSeeder
 ```
+
+> **Mocked external services** (per the report's supporting actors): `paymentGateway.js`
+> (Payment Gateway / Bank) and `notificationService.js` (Notification Service). No paid APIs.
 
 ---
 
@@ -127,6 +138,38 @@ accounts are created by running `npm run seed:demo` (see Database setup).
 
 > Change the admin credentials by setting `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`
 > **before** the first run (the admin is only seeded when none exists).
+
+---
+
+## Features
+
+**Accounts & access**
+- Registration for clients and veterinarians with full validation (email format, unique email,
+  strong password); bcrypt hashing; session login/logout with account lockout after failed attempts.
+- Role-based dashboards (client / veterinarian / administrator) and route guards.
+- Single pre-configured administrator; veterinarians require admin approval before they can log in.
+
+**Client**
+- Manage animal profiles; browse veterinarians with ratings and reviews.
+- Book home/farm visits (service, animal, location, date) choosing a slot or auto-assignment;
+  cancel before the scheduled time; follow appointment status; request online consultations.
+- View invoices, pay by **cash** or **card** (mock gateway), download invoice PDFs, see payment
+  history with date filtering; submit one review per completed visit.
+
+**Veterinarian**
+- Manage availability slots; view assigned appointments and advance status
+  (Confirmed → En Route → In Progress → Completed); acknowledge/decline emergencies.
+- Add post-visit medical records, prescriptions, and file attachments; add invoice charges and
+  confirm cash receipt; accept/decline consultation requests.
+
+**Administrator**
+- Approve veterinarians; manage service pricing; moderate reviews; manage user account status
+  (with audit log); review escalated emergencies; generate monthly reports (PDF/CSV).
+
+**System (mocked external services + background jobs)**
+- Notification Service (in-app inbox) and Payment Gateway are mocked.
+- Background sweeps: emergency acknowledgement timeouts/reassignment, appointment reminders
+  (24h / 1h), and follow-up reminders.
 
 ---
 
@@ -229,10 +272,10 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Seed realistic demo accounts (clients, approved vets), services, slots, animals, and sample
   appointments so the app is presentable out of the box.
 
-- [ ] **Task 22 — UI cleanup and Bootstrap styling**
+- [x] **Task 22 — UI cleanup and Bootstrap styling**
   Polish the interface and apply consistent Bootstrap/CSS styling across all pages.
 
-- [ ] **Task 23 — Final testing and README update**
+- [x] **Task 23 — Final testing and README update**
   End-to-end testing of all workflows and a final pass over the README and documentation.
 
 ---
