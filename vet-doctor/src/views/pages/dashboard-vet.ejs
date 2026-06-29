@@ -15,6 +15,7 @@
         <li><strong>Service area:</strong> <%= user.serviceArea || '-' %></li>
         <li><strong>Experience:</strong>
           <%= user.yearsOfExperience != null ? user.yearsOfExperience + ' years' : '-' %></li>
+        <li><strong>Average rating:</strong> <%= Number(user.averageRating).toFixed(2) %>&#9733;</li>
         <li>
           <strong>Status:</strong>
           <% if (user.isApproved) { %>

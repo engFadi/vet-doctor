@@ -1,0 +1,59 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Review moderation</h1>
+
+  <h2>Pending review<%= pending.length === 1 ? '' : 's' %> (<%= pending.length %>)</h2>
+  <% if (pending.length === 0) { %>
+    <div class="card"><p class="muted">No reviews are awaiting moderation.</p></div>
+  <% } else { %>
+    <div class="card-grid">
+      <% pending.forEach(function (r) { %>
+        <article class="card">
+          <h3><%= r.rating %>&#9733; for Dr. <%= r.veterinarian ? r.veterinarian.fullName : '-' %></h3>
+          <p class="muted">by <%= r.client ? r.client.fullName : '-' %>
+            &middot; <%= r.appointment && r.appointment.service ? r.appointment.service.name : '' %></p>
+          <p><%= r.reviewText || '(no text)' %></p>
+          <div class="action-row">
+            <form action="/admin/reviews/<%= r.id %>/approve" method="POST">
+              <button type="submit" class="btn btn-small btn-primary">Approve</button>
+            </form>
+            <form action="/admin/reviews/<%= r.id %>/remove" method="POST" class="inline-remove">
+              <input type="text" name="reason" placeholder="Removal reason" required />
+              <button type="submit" class="btn btn-small btn-danger">Remove</button>
+            </form>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+
+  <h2 style="margin-top:2rem;">Published reviews</h2>
+  <% if (approved.length === 0) { %>
+    <div class="card"><p class="muted">No published reviews yet.</p></div>
+  <% } else { %>
+    <table class="data-table">
+      <thead><tr><th>Rating</th><th>Veterinarian</th><th>Client</th><th>Review</th><th>Action</th></tr></thead>
+      <tbody>
+        <% approved.forEach(function (r) { %>
+          <tr>
+            <td><%= r.rating %>&#9733;</td>
+            <td>Dr. <%= r.veterinarian ? r.veterinarian.fullName : '-' %></td>
+            <td><%= r.client ? r.client.fullName : '-' %></td>
+            <td><%= r.reviewText || '-' %></td>
+            <td>
+              <form action="/admin/reviews/<%= r.id %>/remove" method="POST" class="inline-remove">
+                <input type="text" name="reason" placeholder="Removal reason" required />
+                <button type="submit" class="btn btn-small btn-danger">Remove</button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Dr. <%= vet.fullName %></h1>
+
+  <div class="card" style="margin-bottom:1.25rem;">
+    <ul class="detail-list">
+      <li><strong>Specialization:</strong> <%= vet.specialization || 'General' %></li>
+      <li><strong>Service area:</strong> <%= vet.serviceArea || '-' %></li>
+      <li><strong>Experience:</strong>
+        <%= vet.yearsOfExperience != null ? vet.yearsOfExperience + ' years' : '-' %></li>
+      <li><strong>Average rating:</strong> <%= Number(vet.averageRating).toFixed(2) %>&#9733;</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Recent reviews</h3>
+    <% if (reviews.length === 0) { %>
+      <p class="muted">No reviews yet.</p>
+    <% } else { %>
+      <% reviews.forEach(function (r) { %>
+        <div class="review-item">
+          <div class="review-head">
+            <span class="review-stars"><%= r.rating %>&#9733;</span>
+            <span class="muted"><%= r.client ? r.client.fullName : 'Client' %>
+              &middot; <%= new Date(r.submissionDate).toLocaleDateString() %></span>
+          </div>
+          <% if (r.reviewText) { %><p><%= r.reviewText %></p><% } %>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+
+  <p style="margin-top:1.5rem;"><a href="/veterinarians">&larr; Back to veterinarians</a></p>
+</section>
+
+<%- include('../partials/footer') %>

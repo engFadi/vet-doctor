@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Veterinarians</h1>
+  <p class="lead">Browse our approved veterinarians and their ratings.</p>
+
+  <% if (vets.length === 0) { %>
+    <div class="card"><p class="muted">No veterinarians are available yet.</p></div>
+  <% } else { %>
+    <div class="card-grid">
+      <% vets.forEach(function (vet) { %>
+        <article class="card">
+          <h3>Dr. <%= vet.fullName %></h3>
+          <ul class="detail-list">
+            <li><strong>Specialization:</strong> <%= vet.specialization || 'General' %></li>
+            <li><strong>Service area:</strong> <%= vet.serviceArea || '-' %></li>
+            <li><strong>Experience:</strong>
+              <%= vet.yearsOfExperience != null ? vet.yearsOfExperience + ' years' : '-' %></li>
+            <li><strong>Rating:</strong>
+              <%= Number(vet.averageRating).toFixed(2) %>&#9733;
+              <span class="muted">(<%= countMap[vet.id] || 0 %> review<%= (countMap[vet.id] || 0) === 1 ? '' : 's' %>)</span>
+            </li>
+          </ul>
+          <a class="btn btn-secondary" href="/veterinarians/<%= vet.id %>">View profile</a>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

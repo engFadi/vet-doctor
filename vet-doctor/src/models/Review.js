@@ -38,6 +38,9 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: DataTypes.NOW,
       },
+      // Recorded when an administrator removes a review (SR9.14).
+      removalReason: { type: DataTypes.STRING, allowNull: true },
+      moderatedById: { type: DataTypes.INTEGER, allowNull: true },
     },
     {
       tableName: 'reviews',

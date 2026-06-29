@@ -5,15 +5,18 @@
 // rejects them (SR8.5-SR8.7). Approved vets become ACTIVE and can log in.
 // ----------------------------------------------------------------------
 const db = require('../models');
-const { ROLES, ACCOUNT_STATUS, APPOINTMENT_STATUS } = require('../models/enums');
+const { ROLES, ACCOUNT_STATUS, APPOINTMENT_STATUS, REVIEW_STATUS } = require('../models/enums');
 const emergencyService = require('../services/emergencyService');
+const reviewService = require('../services/reviewService');
 
 const User = db.User;
 const Service = db.Service;
 const Appointment = db.Appointment;
+const Review = db.Review;
 const PENDING_LIST = '/admin/vets/pending';
 const SERVICES_LIST = '/admin/services';
 const EMERGENCIES_LIST = '/admin/emergencies';
+const REVIEWS_LIST = '/admin/reviews';
 
 // Load a veterinarian by id (with the password hash so .save() validates).
 async function findVet(id) {
@@ -170,6 +173,89 @@ exports.listEscalatedEmergencies = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Review moderation (SR9.11, SR9.14-9.15)
+// ----------------------------------------------------------------------
+
+const REVIEW_INCLUDES = [
+  { model: db.User, as: 'client', attributes: ['id', 'fullName'] },
+  { model: db.User, as: 'veterinarian', attributes: ['id', 'fullName'] },
+  { model: db.Appointment, as: 'appointment', include: [{ model: Service, as: 'service' }] },
+];
+
+// GET /admin/reviews - pending (flagged) reviews + recently approved ones
+exports.listReviews = async (req, res, next) => {
+  try {
+    const [pending, approved] = await Promise.all([
+      Review.findAll({
+        where: { status: REVIEW_STATUS.PENDING },
+        include: REVIEW_INCLUDES,
+        order: [['submissionDate', 'ASC']],
+      }),
+      Review.findAll({
+        where: { status: REVIEW_STATUS.APPROVED },
+        include: REVIEW_INCLUDES,
+        order: [['submissionDate', 'DESC']],
+        limit: 20,
+      }),
+    ]);
+    res.render('pages/admin-reviews', {
+      title: 'Review Moderation - Vet Doctor',
+      pending,
+      approved,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /admin/reviews/:id/approve - publish a held review (SR9.11)
+exports.approveReview = async (req, res, next) => {
+  try {
+    const review = await Review.findByPk(req.params.id);
+    if (!review || review.status !== REVIEW_STATUS.PENDING) {
+      req.flash('error', 'Pending review not found.');
+      return res.redirect(REVIEWS_LIST);
+    }
+    review.status = REVIEW_STATUS.APPROVED;
+    review.moderatedById = req.session.user.id;
+    await review.save();
+
+    await reviewService.recalcAverage(review.veterinarianId); // SR9.13
+    req.flash('success', 'Review approved and published.');
+    return res.redirect(REVIEWS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /admin/reviews/:id/remove - remove a review with a reason (SR9.14-9.15)
+exports.removeReview = async (req, res, next) => {
+  try {
+    const review = await Review.findByPk(req.params.id);
+    if (!review || review.status === REVIEW_STATUS.REMOVED) {
+      req.flash('error', 'Review not found.');
+      return res.redirect(REVIEWS_LIST);
+    }
+    const reason = (req.body.reason || '').trim();
+    if (!reason) {
+      req.flash('error', 'A removal reason is required.');
+      return res.redirect(REVIEWS_LIST);
+    }
+
+    review.status = REVIEW_STATUS.REMOVED;
+    review.removalReason = reason;
+    review.moderatedById = req.session.user.id;
+    await review.save();
+
+    await reviewService.recalcAverage(review.veterinarianId); // SR9.15
+    req.flash('success', 'Review removed.');
+    return res.redirect(REVIEWS_LIST);
+  } catch (err) {
+    return next(err);
   }
 };
 

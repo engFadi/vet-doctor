@@ -17,6 +17,7 @@
         <a href="/">Home</a>
         <% if (typeof currentUser !== 'undefined' && currentUser) { %>
           <a href="/dashboard">Dashboard</a>
+          <a href="/veterinarians">Veterinarians</a>
           <a href="/notifications" class="nav-notif">Notifications<% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %> <span class="notif-badge"><%= unreadCount %></span><% } %></a>
           <span class="nav-user">Hi, <%= currentUser.fullName %> (<%= currentUser.role %>)</span>
           <form action="/logout" method="POST" class="nav-logout">

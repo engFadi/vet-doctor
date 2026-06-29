@@ -494,6 +494,39 @@ body {
   color: #b8860b;
 }
 
+.review-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+.review-head {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.review-stars {
+  color: #b8860b;
+  font-weight: 700;
+}
+
+.inline-remove {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.inline-remove input {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
 /* Tables */
 .data-table {
   width: 100%;

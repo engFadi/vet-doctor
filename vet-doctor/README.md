@@ -205,7 +205,7 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Let clients submit one rating (1–5) and an optional review for a completed appointment, preventing
   duplicate or ineligible submissions (SR9.3–SR9.8, Use Case: Submit Review).
 
-- [ ] **Task 17 — Review moderation and veterinarian average rating**
+- [x] **Task 17 — Review moderation and veterinarian average rating**
   Run content moderation on reviews, queue flagged ones for admin approval/removal, and recompute
   each veterinarian's average rating (SR9.10–SR9.15, SR4.5).
 

@@ -17,6 +17,7 @@ const notificationService = require('../services/notificationService');
 const invoiceService = require('../services/invoiceService');
 const paymentGateway = require('../services/paymentGateway');
 const pdfService = require('../services/pdfService');
+const reviewService = require('../services/reviewService');
 const { PAYMENT_METHOD, PAYMENT_STATUS, REVIEW_STATUS } = require('../models/enums');
 
 const Review = db.Review;
@@ -798,16 +799,30 @@ exports.submitReview = async (req, res, next) => {
       });
     }
 
+    // SR9.10/9.11: flagged reviews are held for admin moderation; clean
+    // reviews are published immediately and counted in the average (SR9.13).
+    const flagged = reviewService.isFlagged(reviewText);
+    const status = flagged ? REVIEW_STATUS.PENDING : REVIEW_STATUS.APPROVED;
+
     await Review.create({
       appointmentId: appointment.id,
       clientId: req.session.user.id,
       veterinarianId: appointment.veterinarianId,
       rating,
       reviewText: reviewText || null,
-      status: REVIEW_STATUS.PENDING, // moderation/approval in Task 17
+      status,
     });
 
-    req.flash('success', 'Thank you! Your review has been submitted.');
+    if (!flagged) {
+      await reviewService.recalcAverage(appointment.veterinarianId);
+    }
+
+    req.flash(
+      'success',
+      flagged
+        ? 'Your review was submitted and is pending moderation.'
+        : 'Thank you! Your review has been published.'
+    );
     return res.redirect(APPOINTMENTS_LIST);
   } catch (err) {
     return next(err);

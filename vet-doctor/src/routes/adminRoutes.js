@@ -25,4 +25,9 @@ router.post('/services/:id', adminController.updateService);
 router.get('/emergencies', adminController.listEscalatedEmergencies);
 router.post('/emergencies/:id/reassign', adminController.retryReassign);
 
+// Review moderation
+router.get('/reviews', adminController.listReviews);
+router.post('/reviews/:id/approve', adminController.approveReview);
+router.post('/reviews/:id/remove', adminController.removeReview);
+
 module.exports = router;
