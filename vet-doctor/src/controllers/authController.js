@@ -70,6 +70,12 @@ exports.login = async (req, res, next) => {
     if (user.accountStatus === ACCOUNT_STATUS.SUSPENDED) {
       return renderLoginError(res, email, 'This account has been suspended.', 403);
     }
+    if (user.accountStatus === ACCOUNT_STATUS.DEACTIVATED) {
+      return renderLoginError(res, email, 'This account has been deactivated.', 403);
+    }
+    if (user.accountStatus === ACCOUNT_STATUS.DELETED) {
+      return renderLoginError(res, email, 'Invalid email or password.', 401);
+    }
 
     // SR2.2 / SR2.3: verify the password.
     const ok = await user.validatePassword(password);

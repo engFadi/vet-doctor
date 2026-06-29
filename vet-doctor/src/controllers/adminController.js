@@ -13,10 +13,20 @@ const User = db.User;
 const Service = db.Service;
 const Appointment = db.Appointment;
 const Review = db.Review;
+const AdminAction = db.AdminAction;
 const PENDING_LIST = '/admin/vets/pending';
 const SERVICES_LIST = '/admin/services';
 const EMERGENCIES_LIST = '/admin/emergencies';
 const REVIEWS_LIST = '/admin/reviews';
+const USERS_LIST = '/admin/users';
+
+// Statuses an admin may set via user management (SR8.8).
+const MANAGEABLE_STATUSES = [
+  ACCOUNT_STATUS.ACTIVE,
+  ACCOUNT_STATUS.SUSPENDED,
+  ACCOUNT_STATUS.DEACTIVATED,
+  ACCOUNT_STATUS.DELETED,
+];
 
 // Load a veterinarian by id (with the password hash so .save() validates).
 async function findVet(id) {
@@ -254,6 +264,76 @@ exports.removeReview = async (req, res, next) => {
     await reviewService.recalcAverage(review.veterinarianId); // SR9.15
     req.flash('success', 'Review removed.');
     return res.redirect(REVIEWS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// User account management (SR8.8-8.9)
+// ----------------------------------------------------------------------
+
+// GET /admin/users - manage client & veterinarian accounts
+exports.listUsers = async (req, res, next) => {
+  try {
+    const { Op } = db.Sequelize;
+    const users = await User.findAll({
+      where: { role: { [Op.in]: [ROLES.CLIENT, ROLES.VETERINARIAN] } },
+      order: [['role', 'ASC'], ['fullName', 'ASC']],
+    });
+    const actions = await AdminAction.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: 15,
+      include: [{ model: User, as: 'targetUser', attributes: ['id', 'fullName'] }],
+    });
+    res.render('pages/admin-users', {
+      title: 'User Management - Vet Doctor',
+      users,
+      actions,
+      statuses: MANAGEABLE_STATUSES,
+      accountStatus: ACCOUNT_STATUS,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /admin/users/:id/status - change account status with a reason (SR8.8-8.9)
+exports.changeUserStatus = async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: { id: req.params.id },
+    });
+    if (!user || user.role === ROLES.ADMIN) {
+      req.flash('error', 'User not found.');
+      return res.redirect(USERS_LIST);
+    }
+
+    const status = (req.body.status || '').trim();
+    const reason = (req.body.reason || '').trim();
+    if (!MANAGEABLE_STATUSES.includes(status)) {
+      req.flash('error', 'Invalid account status.');
+      return res.redirect(USERS_LIST);
+    }
+    if (!reason) {
+      req.flash('error', 'A reason is required for account status changes.');
+      return res.redirect(USERS_LIST);
+    }
+
+    user.accountStatus = status;
+    await user.save({ fields: ['accountStatus'] });
+
+    // SR8.9: record the action with admin name, action type, reason, timestamp.
+    await AdminAction.create({
+      adminId: req.session.user.id,
+      adminName: req.session.user.fullName,
+      targetUserId: user.id,
+      action: `Set status to ${status}`,
+      reason,
+    });
+
+    req.flash('success', `${user.fullName}'s account status set to ${status}.`);
+    return res.redirect(USERS_LIST);
   } catch (err) {
     return next(err);
   }

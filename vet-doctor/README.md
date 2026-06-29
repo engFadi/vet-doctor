@@ -209,11 +209,11 @@ codes in parentheses refer to the System Requirements (SR) and Use Cases in the 
   Run content moderation on reviews, queue flagged ones for admin approval/removal, and recompute
   each veterinarian's average rating (SR9.10–SR9.15, SR4.5).
 
-- [ ] **Task 18 — Consultation requests**
+- [x] **Task 18 — Consultation requests**
   Let clients request an online consultation for an active appointment and let the assigned vet
   accept or decline it (SR7.12–SR7.13).
 
-- [ ] **Task 19 — Admin user management**
+- [x] **Task 19 — Admin user management**
   Let the admin change account status (active, suspended, deactivated, deleted) and record each
   action with reason and timestamp (SR8.8–SR8.9).
 

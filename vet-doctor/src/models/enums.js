@@ -10,12 +10,15 @@ const ROLES = {
   ADMIN: 'admin',
 };
 
-// AccountStatus enumeration.
+// AccountStatus enumeration. DEACTIVATED/DELETED added for admin user
+// management (SR8.8); DELETED is a soft delete that keeps the record.
 const ACCOUNT_STATUS = {
   ACTIVE: 'ACTIVE',
   LOCKED: 'LOCKED',
   PENDING_APPROVAL: 'PENDING_APPROVAL',
   SUSPENDED: 'SUSPENDED',
+  DEACTIVATED: 'DEACTIVATED',
+  DELETED: 'DELETED',
 };
 
 // ServiceType enumeration (the three service types from the report).
@@ -67,6 +70,14 @@ const REVIEW_STATUS = {
   REMOVED: 'REMOVED',
 };
 
+// ConsultationStatus enumeration.
+const CONSULTATION_STATUS = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DECLINED: 'DECLINED',
+  COMPLETED: 'COMPLETED',
+};
+
 module.exports = {
   ROLES,
   ACCOUNT_STATUS,
@@ -76,4 +87,5 @@ module.exports = {
   PAYMENT_METHOD,
   PAYMENT_STATUS,
   REVIEW_STATUS,
+  CONSULTATION_STATUS,
 };

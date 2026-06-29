@@ -41,6 +41,10 @@ router.get('/appointments/:id/invoice/pdf', clientController.downloadInvoicePdf)
 router.get('/appointments/:id/review', clientController.showReviewForm);
 router.post('/appointments/:id/review', clientController.submitReview);
 
+// Consultation requests
+router.get('/appointments/:id/consult', clientController.showConsultForm);
+router.post('/appointments/:id/consult', clientController.requestConsultation);
+
 // Payment history
 router.get('/payments', clientController.paymentHistory);
 

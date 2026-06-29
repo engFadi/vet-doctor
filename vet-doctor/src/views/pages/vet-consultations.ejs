@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>Consultation requests</h1>
+  <p class="lead">Accept or decline online consultation requests from your clients.</p>
+
+  <% if (consultations.length === 0) { %>
+    <div class="card"><p class="muted">You have no pending consultation requests.</p></div>
+  <% } else { %>
+    <div class="card-grid">
+      <% consultations.forEach(function (c) { %>
+        <article class="card">
+          <h3><%= c.consultationType %> consultation</h3>
+          <ul class="detail-list">
+            <li><strong>Client:</strong> <%= c.client ? c.client.fullName : '-' %></li>
+            <li><strong>Service:</strong>
+              <%= c.appointment && c.appointment.service ? c.appointment.service.name : '-' %></li>
+            <li><strong>Requested:</strong> <%= new Date(c.requestDate).toLocaleString() %></li>
+            <% if (c.message) { %><li><strong>Message:</strong> <%= c.message %></li><% } %>
+          </ul>
+          <div class="action-row">
+            <form action="/vet/consultations/<%= c.id %>/accept" method="POST">
+              <button type="submit" class="btn btn-small btn-primary">Accept</button>
+            </form>
+            <form action="/vet/consultations/<%= c.id %>/decline" method="POST">
+              <button type="submit" class="btn btn-small btn-danger">Decline</button>
+            </form>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

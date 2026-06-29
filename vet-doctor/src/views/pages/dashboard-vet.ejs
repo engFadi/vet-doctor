@@ -62,6 +62,16 @@
     </article>
 
     <article class="card">
+      <h3>Consultation requests</h3>
+      <p>Accept or decline online consultation requests from clients.</p>
+      <% if (user.isApproved) { %>
+        <a class="btn btn-secondary" href="/vet/consultations">View requests</a>
+      <% } else { %>
+        <p class="muted">Available once your account is approved.</p>
+      <% } %>
+    </article>
+
+    <article class="card">
       <h3>Payment history</h3>
       <p>Review payments for your visits and download invoices as PDF.</p>
       <% if (user.isApproved) { %>

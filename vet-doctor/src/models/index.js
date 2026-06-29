@@ -25,6 +25,8 @@ db.Invoice = require('./Invoice')(sequelize);
 db.InvoiceItem = require('./InvoiceItem')(sequelize);
 db.Payment = require('./Payment')(sequelize);
 db.Review = require('./Review')(sequelize);
+db.ConsultationRequest = require('./ConsultationRequest')(sequelize);
+db.AdminAction = require('./AdminAction')(sequelize);
 
 // --- Define associations (once all models are loaded) ---
 Object.values(db).forEach((model) => {

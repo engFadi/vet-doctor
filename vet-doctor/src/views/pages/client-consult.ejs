@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Request a consultation</h1>
+  <p class="muted">
+    <%= appointment.service ? appointment.service.name : 'Visit' %>
+    with Dr. <%= appointment.veterinarian ? appointment.veterinarian.fullName : '' %>
+  </p>
+
+  <form action="/client/appointments/<%= appointment.id %>/consult" method="POST" class="form">
+    <label for="consultationType">Consultation type</label>
+    <select id="consultationType" name="consultationType" required>
+      <option value="">-- Select --</option>
+      <% types.forEach(function (t) { %>
+        <option value="<%= t %>"><%= t %></option>
+      <% }); %>
+    </select>
+
+    <label for="message">Message <span class="muted">(optional)</span></label>
+    <textarea id="message" name="message" rows="3" placeholder="Briefly describe what you need help with"></textarea>
+
+    <button type="submit" class="btn btn-primary">Request consultation</button>
+  </form>
+
+  <p style="margin-top:1rem;"><a href="/client/appointments">&larr; Back to appointments</a></p>
+</section>
+
+<%- include('../partials/footer') %>

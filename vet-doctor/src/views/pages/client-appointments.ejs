@@ -65,6 +65,16 @@
                     <a class="btn btn-small btn-primary" href="/client/appointments/<%= appt.id %>/review">Leave a review</a>
                   <% } %>
                 <% } %>
+                <% if (isActive(appt.status)) {
+                     var openConsult = (appt.consultations || []).find(function (c) {
+                       return c.status === consultStatuses.PENDING || c.status === consultStatuses.ACCEPTED;
+                     }); %>
+                  <% if (openConsult) { %>
+                    <span class="badge badge-info">Consult: <%= openConsult.status %></span>
+                  <% } else { %>
+                    <a class="btn btn-small btn-secondary" href="/client/appointments/<%= appt.id %>/consult">Request consultation</a>
+                  <% } %>
+                <% } %>
                 <% if (!cancellable && appt.status !== statuses.COMPLETED) { %>
                   <span class="muted">-</span>
                 <% } %>

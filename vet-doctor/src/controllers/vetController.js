@@ -11,7 +11,7 @@ const notificationService = require('../services/notificationService');
 const invoiceService = require('../services/invoiceService');
 const pdfService = require('../services/pdfService');
 const { allowedTransitions, statusLabel } = require('../utils/appointmentStatus');
-const { PAYMENT_METHOD, PAYMENT_STATUS } = require('../models/enums');
+const { PAYMENT_METHOD, PAYMENT_STATUS, CONSULTATION_STATUS } = require('../models/enums');
 
 const Slot = db.AvailabilitySlot;
 const Appointment = db.Appointment;
@@ -20,6 +20,8 @@ const Prescription = db.Prescription;
 const Invoice = db.Invoice;
 const InvoiceItem = db.InvoiceItem;
 const Payment = db.Payment;
+const ConsultationRequest = db.ConsultationRequest;
+const CONSULTATIONS_LIST = '/vet/consultations';
 const SLOTS_LIST = '/vet/slots';
 const EMERGENCIES_LIST = '/vet/emergencies';
 const APPOINTMENTS_LIST = '/vet/appointments';
@@ -503,6 +505,87 @@ exports.paymentHistory = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Consultation requests (SR7.13)
+// ----------------------------------------------------------------------
+
+function findOwnConsultation(req, id) {
+  return ConsultationRequest.findOne({
+    where: { id, veterinarianId: req.session.user.id, status: CONSULTATION_STATUS.PENDING },
+  });
+}
+
+// GET /vet/consultations - pending consultation requests for this vet
+exports.listConsultations = async (req, res, next) => {
+  try {
+    const consultations = await ConsultationRequest.findAll({
+      where: { veterinarianId: req.session.user.id, status: CONSULTATION_STATUS.PENDING },
+      include: [
+        { model: db.User, as: 'client', attributes: ['id', 'fullName'] },
+        { model: db.Appointment, as: 'appointment', include: [{ model: db.Service, as: 'service' }] },
+      ],
+      order: [['requestDate', 'ASC']],
+    });
+    res.render('pages/vet-consultations', {
+      title: 'Consultation Requests - Vet Doctor',
+      consultations,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /vet/consultations/:id/accept (SR7.13)
+exports.acceptConsultation = async (req, res, next) => {
+  try {
+    const consultation = await findOwnConsultation(req, req.params.id);
+    if (!consultation) {
+      req.flash('error', 'Consultation request not found.');
+      return res.redirect(CONSULTATIONS_LIST);
+    }
+    consultation.status = CONSULTATION_STATUS.ACCEPTED;
+    consultation.scheduledTime = new Date();
+    await consultation.save();
+
+    await notificationService.notify({
+      userId: consultation.clientId,
+      subject: 'Consultation accepted',
+      body: `Your ${consultation.consultationType} consultation request was accepted.`,
+      appointmentId: consultation.appointmentId,
+    });
+
+    req.flash('success', 'Consultation accepted. The client has been notified.');
+    return res.redirect(CONSULTATIONS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /vet/consultations/:id/decline (SR7.13)
+exports.declineConsultation = async (req, res, next) => {
+  try {
+    const consultation = await findOwnConsultation(req, req.params.id);
+    if (!consultation) {
+      req.flash('error', 'Consultation request not found.');
+      return res.redirect(CONSULTATIONS_LIST);
+    }
+    consultation.status = CONSULTATION_STATUS.DECLINED;
+    await consultation.save();
+
+    await notificationService.notify({
+      userId: consultation.clientId,
+      subject: 'Consultation declined',
+      body: `Your ${consultation.consultationType} consultation request was declined.`,
+      appointmentId: consultation.appointmentId,
+    });
+
+    req.flash('success', 'Consultation declined. The client has been notified.');
+    return res.redirect(CONSULTATIONS_LIST);
+  } catch (err) {
+    return next(err);
   }
 };
 

@@ -30,4 +30,8 @@ router.get('/reviews', adminController.listReviews);
 router.post('/reviews/:id/approve', adminController.approveReview);
 router.post('/reviews/:id/remove', adminController.removeReview);
 
+// User account management
+router.get('/users', adminController.listUsers);
+router.post('/users/:id/status', adminController.changeUserStatus);
+
 module.exports = router;

@@ -42,4 +42,24 @@ function allowedTransitions(appointment) {
   return TRANSITIONS[appointment.status] || [];
 }
 
-module.exports = { STATUS_LABELS, statusLabel, TRANSITIONS, allowedTransitions };
+// Appointments that are still going ahead (not finished/cancelled).
+const ACTIVE_STATUSES = [
+  APPOINTMENT_STATUS.REQUESTED,
+  APPOINTMENT_STATUS.VETERINARIAN_ASSIGNED,
+  APPOINTMENT_STATUS.CONFIRMED,
+  APPOINTMENT_STATUS.EN_ROUTE,
+  APPOINTMENT_STATUS.IN_PROGRESS,
+];
+
+function isActive(status) {
+  return ACTIVE_STATUSES.includes(status);
+}
+
+module.exports = {
+  STATUS_LABELS,
+  statusLabel,
+  TRANSITIONS,
+  allowedTransitions,
+  ACTIVE_STATUSES,
+  isActive,
+};

@@ -55,6 +55,11 @@ router.post('/appointments/:id/charges', vetController.addCharge);
 router.post('/appointments/:id/confirm-cash', vetController.confirmCash);
 router.get('/appointments/:id/invoice/pdf', vetController.downloadInvoicePdf);
 
+// Consultation requests
+router.get('/consultations', vetController.listConsultations);
+router.post('/consultations/:id/accept', vetController.acceptConsultation);
+router.post('/consultations/:id/decline', vetController.declineConsultation);
+
 // Payment history
 router.get('/payments', vetController.paymentHistory);
 

@@ -18,9 +18,17 @@ const invoiceService = require('../services/invoiceService');
 const paymentGateway = require('../services/paymentGateway');
 const pdfService = require('../services/pdfService');
 const reviewService = require('../services/reviewService');
-const { PAYMENT_METHOD, PAYMENT_STATUS, REVIEW_STATUS } = require('../models/enums');
+const { isActive } = require('../utils/appointmentStatus');
+const {
+  PAYMENT_METHOD,
+  PAYMENT_STATUS,
+  REVIEW_STATUS,
+  CONSULTATION_STATUS,
+} = require('../models/enums');
 
 const Review = db.Review;
+const ConsultationRequest = db.ConsultationRequest;
+const CONSULTATION_TYPES = ['Video', 'Voice'];
 
 const Invoice = db.Invoice;
 const InvoiceItem = db.InvoiceItem;
@@ -420,6 +428,7 @@ exports.listAppointments = async (req, res, next) => {
         { model: Animal, as: 'animal' },
         { model: User, as: 'veterinarian', attributes: ['id', 'fullName', 'specialization'] },
         { model: Review, as: 'review' },
+        { model: ConsultationRequest, as: 'consultations' },
       ],
       order: [['appointmentDateTime', 'DESC']],
     });
@@ -429,6 +438,8 @@ exports.listAppointments = async (req, res, next) => {
       appointments,
       now: new Date(),
       statuses: APPOINTMENT_STATUS,
+      isActive,
+      consultStatuses: CONSULTATION_STATUS,
     });
   } catch (err) {
     next(err);
@@ -823,6 +834,94 @@ exports.submitReview = async (req, res, next) => {
         ? 'Your review was submitted and is pending moderation.'
         : 'Thank you! Your review has been published.'
     );
+    return res.redirect(APPOINTMENTS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Consultation requests (SR7.12)
+// ----------------------------------------------------------------------
+
+// GET /client/appointments/:id/consult - request form
+exports.showConsultForm = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, clientId: req.session.user.id },
+      include: [
+        { model: Service, as: 'service' },
+        { model: User, as: 'veterinarian', attributes: ['id', 'fullName'] },
+        { model: ConsultationRequest, as: 'consultations' },
+      ],
+    });
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (!isActive(appointment.status)) {
+      req.flash('error', 'Consultations can only be requested for active appointments.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    res.render('pages/client-consult', {
+      title: 'Request Consultation - Vet Doctor',
+      appointment,
+      types: CONSULTATION_TYPES,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /client/appointments/:id/consult - create the request
+exports.requestConsultation = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, clientId: req.session.user.id },
+      include: [{ model: ConsultationRequest, as: 'consultations' }],
+    });
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (!isActive(appointment.status)) {
+      req.flash('error', 'Consultations can only be requested for active appointments.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+
+    // Block a new request while one is still pending or accepted.
+    const open = (appointment.consultations || []).some((c) =>
+      [CONSULTATION_STATUS.PENDING, CONSULTATION_STATUS.ACCEPTED].includes(c.status)
+    );
+    if (open) {
+      req.flash('error', 'You already have an open consultation request for this appointment.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+
+    const consultationType = (req.body.consultationType || '').trim();
+    const message = (req.body.message || '').trim();
+    if (!CONSULTATION_TYPES.includes(consultationType)) {
+      req.flash('error', 'Please choose a valid consultation type.');
+      return res.redirect(`/client/appointments/${appointment.id}/consult`);
+    }
+
+    await ConsultationRequest.create({
+      appointmentId: appointment.id,
+      clientId: req.session.user.id,
+      veterinarianId: appointment.veterinarianId,
+      consultationType,
+      message: message || null,
+      status: CONSULTATION_STATUS.PENDING,
+    });
+
+    await notificationService.notify({
+      userId: appointment.veterinarianId,
+      subject: 'New consultation request',
+      body: `A client requested a ${consultationType} consultation.`,
+      appointmentId: appointment.id,
+    });
+
+    req.flash('success', 'Consultation requested. The veterinarian will respond shortly.');
     return res.redirect(APPOINTMENTS_LIST);
   } catch (err) {
     return next(err);

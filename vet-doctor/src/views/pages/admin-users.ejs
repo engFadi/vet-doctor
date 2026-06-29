@@ -1,0 +1,65 @@
+<%- include('../partials/header') %>
+
+<section class="dashboard">
+  <h1>User management</h1>
+  <p class="lead">Change account status. Every change is recorded with a reason.</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Name</th><th>Role</th><th>Email</th><th>Status</th><th>Change status</th></tr>
+    </thead>
+    <tbody>
+      <% users.forEach(function (u) { %>
+        <tr>
+          <td><%= u.fullName %></td>
+          <td><%= u.role %></td>
+          <td><%= u.email %></td>
+          <td>
+            <% if (u.accountStatus === accountStatus.ACTIVE) { %>
+              <span class="badge badge-success"><%= u.accountStatus %></span>
+            <% } else if (u.accountStatus === accountStatus.PENDING_APPROVAL) { %>
+              <span class="badge badge-warning"><%= u.accountStatus %></span>
+            <% } else { %>
+              <span class="badge badge-danger"><%= u.accountStatus %></span>
+            <% } %>
+          </td>
+          <td>
+            <form action="/admin/users/<%= u.id %>/status" method="POST" class="inline-remove">
+              <select name="status" required>
+                <% statuses.forEach(function (s) { %>
+                  <option value="<%= s %>" <%= u.accountStatus === s ? 'selected' : '' %>><%= s %></option>
+                <% }); %>
+              </select>
+              <input type="text" name="reason" placeholder="Reason" required />
+              <button type="submit" class="btn btn-small btn-primary">Apply</button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <h2 style="margin-top:2rem;">Recent actions</h2>
+  <% if (actions.length === 0) { %>
+    <p class="muted">No actions recorded yet.</p>
+  <% } else { %>
+    <table class="data-table">
+      <thead><tr><th>When</th><th>Admin</th><th>User</th><th>Action</th><th>Reason</th></tr></thead>
+      <tbody>
+        <% actions.forEach(function (a) { %>
+          <tr>
+            <td><%= new Date(a.createdAt).toLocaleString() %></td>
+            <td><%= a.adminName %></td>
+            <td><%= a.targetUser ? a.targetUser.fullName : a.targetUserId %></td>
+            <td><%= a.action %></td>
+            <td><%= a.reason %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>
