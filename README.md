@@ -104,7 +104,7 @@ npm run dev      # start with auto-reload (node --watch)
 ```
 
 Then open **http://localhost:3000** in your browser.
-
+or you can open it on the web: https://vet-doctor-bk1v.onrender.com
 ---
 
 ## Database setup
