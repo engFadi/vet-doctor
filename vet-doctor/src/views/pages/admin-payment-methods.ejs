@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Payment methods</h1>
+  <p class="muted">Enable or disable the payment methods clients can use. At least one must stay on.</p>
+
+  <form action="/admin/payment-methods" method="POST" class="form">
+    <label class="check-row">
+      <input type="checkbox" name="cash" <%= methods.cash ? 'checked' : '' %> />
+      <span>Cash</span>
+    </label>
+    <label class="check-row">
+      <input type="checkbox" name="card" <%= methods.card ? 'checked' : '' %> />
+      <span>Credit/Debit Card</span>
+    </label>
+    <button type="submit" class="btn btn-primary">Save</button>
+  </form>
+
+  <p style="margin-top:1rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

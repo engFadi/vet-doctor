@@ -78,15 +78,22 @@
         <% } %>
         <p>Choose how you would like to pay:</p>
         <div class="action-row">
-          <form action="/client/appointments/<%= appointment.id %>/invoice/pay-cash" method="POST">
-            <button type="submit" class="btn btn-secondary" <%= blocked ? 'disabled' : '' %>>Pay by Cash</button>
-          </form>
-          <% if (blocked) { %>
-            <button class="btn btn-primary" disabled>Pay by Card</button>
-          <% } else { %>
-            <a class="btn btn-primary" href="/client/appointments/<%= appointment.id %>/invoice/pay-card">Pay by Card</a>
+          <% if (enabledMethods.cash) { %>
+            <form action="/client/appointments/<%= appointment.id %>/invoice/pay-cash" method="POST">
+              <button type="submit" class="btn btn-secondary" <%= blocked ? 'disabled' : '' %>>Pay by Cash</button>
+            </form>
+          <% } %>
+          <% if (enabledMethods.card) { %>
+            <% if (blocked) { %>
+              <button class="btn btn-primary" disabled>Pay by Card</button>
+            <% } else { %>
+              <a class="btn btn-primary" href="/client/appointments/<%= appointment.id %>/invoice/pay-card">Pay by Card</a>
+            <% } %>
           <% } %>
         </div>
+        <% if (!enabledMethods.cash && !enabledMethods.card) { %>
+          <p class="muted">No payment methods are currently available. Please check back later.</p>
+        <% } %>
       <% } %>
     </div>
   <% } else { %>

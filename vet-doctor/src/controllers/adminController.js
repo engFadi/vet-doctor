@@ -10,6 +10,7 @@ const emergencyService = require('../services/emergencyService');
 const reviewService = require('../services/reviewService');
 const reportService = require('../services/reportService');
 const pdfService = require('../services/pdfService');
+const settingsService = require('../services/settingsService');
 
 const User = db.User;
 const Service = db.Service;
@@ -336,6 +337,41 @@ exports.changeUserStatus = async (req, res, next) => {
 
     req.flash('success', `${user.fullName}'s account status set to ${status}.`);
     return res.redirect(USERS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ----------------------------------------------------------------------
+// Supported payment methods (SR8.16)
+// ----------------------------------------------------------------------
+
+// GET /admin/payment-methods
+exports.showPaymentMethods = async (req, res, next) => {
+  try {
+    const methods = await settingsService.paymentMethods();
+    res.render('pages/admin-payment-methods', {
+      title: 'Payment Methods - Vet Doctor',
+      methods,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /admin/payment-methods
+exports.updatePaymentMethods = async (req, res, next) => {
+  try {
+    const cash = req.body.cash === 'on' || req.body.cash === 'true';
+    const card = req.body.card === 'on' || req.body.card === 'true';
+    if (!cash && !card) {
+      req.flash('error', 'At least one payment method must remain enabled.');
+      return res.redirect('/admin/payment-methods');
+    }
+    await settingsService.set('PAYMENT_CASH_ENABLED', cash);
+    await settingsService.set('PAYMENT_CARD_ENABLED', card);
+    req.flash('success', 'Supported payment methods updated.');
+    return res.redirect('/admin/payment-methods');
   } catch (err) {
     return next(err);
   }

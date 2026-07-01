@@ -18,6 +18,7 @@ const invoiceService = require('../services/invoiceService');
 const paymentGateway = require('../services/paymentGateway');
 const pdfService = require('../services/pdfService');
 const reviewService = require('../services/reviewService');
+const settingsService = require('../services/settingsService');
 const { isActive } = require('../utils/appointmentStatus');
 const {
   PAYMENT_METHOD,
@@ -539,6 +540,7 @@ exports.showInvoice = async (req, res, next) => {
       invoice: appointment.invoice,
       methods: PAYMENT_METHOD,
       statuses: PAYMENT_STATUS,
+      enabledMethods: await settingsService.paymentMethods(), // SR8.16
       paymentMethodLabel: invoiceService.paymentMethodLabel,
       paymentStatusLabel: invoiceService.paymentStatusLabel,
     });
@@ -575,6 +577,11 @@ exports.payCash = async (req, res, next) => {
     const invoice = appointment.invoice;
     const invoiceUrl = `/client/appointments/${appointment.id}/invoice`;
 
+    // SR8.16: cash must be an enabled payment method.
+    if (!(await settingsService.getBool('PAYMENT_CASH_ENABLED', true))) {
+      req.flash('error', 'Cash payments are not currently available.');
+      return res.redirect(invoiceUrl);
+    }
     if (invoice.status === PAYMENT_STATUS.PAID) {
       req.flash('error', 'This invoice is already paid.');
       return res.redirect(invoiceUrl);
@@ -650,6 +657,11 @@ exports.showCardForm = async (req, res, next) => {
       req.flash('error', 'Appointment not found.');
       return res.redirect(APPOINTMENTS_LIST);
     }
+    // SR8.16: card must be an enabled payment method.
+    if (!(await settingsService.getBool('PAYMENT_CARD_ENABLED', true))) {
+      req.flash('error', 'Card payments are not currently available.');
+      return res.redirect(`/client/appointments/${appointment.id}/invoice`);
+    }
     const invoice = payableInvoiceOrRedirect(appointment, req, res);
     if (!invoice) return undefined;
 
@@ -671,6 +683,11 @@ exports.payCard = async (req, res, next) => {
     if (!appointment) {
       req.flash('error', 'Appointment not found.');
       return res.redirect(APPOINTMENTS_LIST);
+    }
+    // SR8.16: card must be an enabled payment method.
+    if (!(await settingsService.getBool('PAYMENT_CARD_ENABLED', true))) {
+      req.flash('error', 'Card payments are not currently available.');
+      return res.redirect(`/client/appointments/${appointment.id}/invoice`);
     }
     const invoice = payableInvoiceOrRedirect(appointment, req, res);
     if (!invoice) return undefined;

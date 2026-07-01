@@ -471,6 +471,18 @@ main.container {
   color: #b8860b;
 }
 
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+.check-row input {
+  width: auto;
+}
+
 /* Message thread */
 .msg-thread {
   border: 1px solid var(--border);

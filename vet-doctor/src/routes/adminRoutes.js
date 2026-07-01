@@ -21,6 +21,10 @@ router.post('/vets/:id/reject', adminController.rejectVet);
 router.get('/services', adminController.listServices);
 router.post('/services/:id', adminController.updateService);
 
+// Supported payment methods
+router.get('/payment-methods', adminController.showPaymentMethods);
+router.post('/payment-methods', adminController.updatePaymentMethods);
+
 // Escalated emergencies
 router.get('/emergencies', adminController.listEscalatedEmergencies);
 router.post('/emergencies/:id/reassign', adminController.retryReassign);
