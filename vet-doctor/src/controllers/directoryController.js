@@ -6,18 +6,30 @@
 const db = require('../models');
 const { ROLES, ACCOUNT_STATUS, REVIEW_STATUS } = require('../models/enums');
 
+const { Op } = db.Sequelize;
 const User = db.User;
 const Review = db.Review;
 
-// GET /veterinarians - list approved, active veterinarians
+// GET /veterinarians - list approved, active veterinarians (with search)
 exports.listVets = async (req, res, next) => {
   try {
+    const q = (req.query.q || '').trim();
+
+    const where = {
+      role: ROLES.VETERINARIAN,
+      isApproved: true,
+      accountStatus: ACCOUNT_STATUS.ACTIVE,
+    };
+    // SR4.7: search by name or specialization (case-insensitive).
+    if (q) {
+      where[Op.or] = [
+        { fullName: { [Op.like]: `%${q}%` } },
+        { specialization: { [Op.like]: `%${q}%` } },
+      ];
+    }
+
     const vets = await User.findAll({
-      where: {
-        role: ROLES.VETERINARIAN,
-        isApproved: true,
-        accountStatus: ACCOUNT_STATUS.ACTIVE,
-      },
+      where,
       attributes: [
         'id', 'fullName', 'specialization', 'serviceArea',
         'yearsOfExperience', 'averageRating',
@@ -39,6 +51,7 @@ exports.listVets = async (req, res, next) => {
       title: 'Veterinarians - Vet Doctor',
       vets,
       countMap,
+      q,
     });
   } catch (err) {
     next(err);
