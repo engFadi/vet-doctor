@@ -71,6 +71,16 @@ module.exports = (sequelize) => {
         allowNull: true,
       },
 
+      // Password reset (SR2.6-2.8): single-use token + 30-minute expiry.
+      resetToken: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      resetTokenExpiry: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+
       // --- Customer-specific ---
       customerType: {
         type: DataTypes.STRING,
@@ -132,6 +142,13 @@ module.exports = (sequelize) => {
   );
 
   // --- Instance methods (map to RegisteredUser operations) ---
+
+  // Set a new password on an existing user (hashes into passwordHash
+  // directly so save() persists it — the beforeValidate hook only fires
+  // reliably on create/insert, not on partial updates).
+  User.prototype.setPassword = async function setPassword(plainPassword) {
+    this.passwordHash = await bcrypt.hash(plainPassword, SALT_ROUNDS);
+  };
 
   // SR2.2: verify a submitted password against the stored hash.
   User.prototype.validatePassword = function validatePassword(plainPassword) {
