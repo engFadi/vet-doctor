@@ -4,28 +4,55 @@
 // rating (SR4.5) and the most recent approved reviews (SR4.6).
 // ----------------------------------------------------------------------
 const db = require('../models');
-const { ROLES, ACCOUNT_STATUS, REVIEW_STATUS } = require('../models/enums');
+const { ROLES, ACCOUNT_STATUS, REVIEW_STATUS, AVAILABILITY_STATUS } = require('../models/enums');
 
 const { Op } = db.Sequelize;
 const User = db.User;
 const Review = db.Review;
+const Slot = db.AvailabilitySlot;
 
-// GET /veterinarians - list approved, active veterinarians (with search)
+// GET /veterinarians - list approved, active veterinarians (search + filters)
 exports.listVets = async (req, res, next) => {
   try {
-    const q = (req.query.q || '').trim();
+    const filters = {
+      q: (req.query.q || '').trim(),
+      specialization: (req.query.specialization || '').trim(),
+      location: (req.query.location || '').trim(),
+      minRating: (req.query.minRating || '').trim(),
+      date: (req.query.date || '').trim(),
+    };
 
     const where = {
       role: ROLES.VETERINARIAN,
       isApproved: true,
       accountStatus: ACCOUNT_STATUS.ACTIVE,
     };
-    // SR4.7: search by name or specialization (case-insensitive).
-    if (q) {
+    // Search by name or specialization (case-insensitive).
+    if (filters.q) {
       where[Op.or] = [
-        { fullName: { [Op.like]: `%${q}%` } },
-        { specialization: { [Op.like]: `%${q}%` } },
+        { fullName: { [Op.like]: `%${filters.q}%` } },
+        { specialization: { [Op.like]: `%${filters.q}%` } },
       ];
+    }
+    // Filter: specialization, service location, minimum rating.
+    if (filters.specialization) {
+      where.specialization = { [Op.like]: `%${filters.specialization}%` };
+    }
+    if (filters.location) {
+      where.serviceArea = { [Op.like]: `%${filters.location}%` };
+    }
+    if (filters.minRating && !Number.isNaN(Number(filters.minRating))) {
+      where.averageRating = { [Op.gte]: Number(filters.minRating) };
+    }
+    // Filter: available on a specific date -> only vets with an AVAILABLE slot.
+    if (filters.date) {
+      const slots = await Slot.findAll({
+        where: { date: filters.date, status: AVAILABILITY_STATUS.AVAILABLE },
+        attributes: ['veterinarianId'],
+        raw: true,
+      });
+      const vetIds = [...new Set(slots.map((s) => s.veterinarianId))];
+      where.id = { [Op.in]: vetIds.length ? vetIds : [0] }; // [0] => no matches
     }
 
     const vets = await User.findAll({
@@ -47,11 +74,38 @@ exports.listVets = async (req, res, next) => {
     const countMap = {};
     counts.forEach((c) => { countMap[c.veterinarianId] = Number(c.count); });
 
+    // Availability: today's status (SR4.2) + next available slot (SR4.3).
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const in30Str = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+    const vetIds = vets.map((v) => v.id);
+    const availabilityMap = {};
+    if (vetIds.length) {
+      const availSlots = await Slot.findAll({
+        where: {
+          veterinarianId: { [Op.in]: vetIds },
+          status: AVAILABILITY_STATUS.AVAILABLE,
+          date: { [Op.gte]: todayStr, [Op.lte]: in30Str },
+        },
+        order: [['date', 'ASC'], ['startTime', 'ASC']],
+        raw: true,
+      });
+      availSlots.forEach((s) => {
+        const a = availabilityMap[s.veterinarianId] || { today: false, days: {} };
+        if (s.date === todayStr) a.today = true;
+        // Group all available slots by date (SR4.3: next 30 days).
+        if (!a.days[s.date]) a.days[s.date] = [];
+        a.days[s.date].push(`${s.startTime}–${s.endTime}`);
+        availabilityMap[s.veterinarianId] = a;
+      });
+    }
+
     res.render('pages/vet-directory', {
       title: 'Veterinarians - Vet Doctor',
       vets,
       countMap,
-      q,
+      availabilityMap,
+      filters,
+      today: todayStr,
     });
   } catch (err) {
     next(err);

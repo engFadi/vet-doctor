@@ -4,11 +4,22 @@
   <h1>Veterinarians</h1>
   <p class="lead">Browse our approved veterinarians and their ratings.</p>
 
+  <% var anyFilter = filters.q || filters.specialization || filters.location || filters.minRating || filters.date; %>
+
   <form action="/veterinarians" method="GET" class="filter-bar">
-    <label for="q">Search</label>
-    <input type="text" id="q" name="q" value="<%= q %>" placeholder="Name or specialization" />
-    <button type="submit" class="btn btn-small btn-primary">Search</button>
-    <% if (q) { %>
+    <input type="text" name="q" value="<%= filters.q %>" placeholder="Search name or specialization" />
+    <input type="text" name="specialization" value="<%= filters.specialization %>" placeholder="Specialization" />
+    <input type="text" name="location" value="<%= filters.location %>" placeholder="Service location" />
+    <label for="date">Available on</label>
+    <input type="date" id="date" name="date" value="<%= filters.date %>" min="<%= today %>" />
+    <label for="minRating">Min rating</label>
+    <select id="minRating" name="minRating">
+      <% [['','Any'],['1','1+'],['2','2+'],['3','3+'],['4','4+'],['5','5']].forEach(function (o) { %>
+        <option value="<%= o[0] %>" <%= filters.minRating === o[0] ? 'selected' : '' %>><%= o[1] %></option>
+      <% }); %>
+    </select>
+    <button type="submit" class="btn btn-small btn-primary">Apply</button>
+    <% if (anyFilter) { %>
       <a class="btn btn-small btn-secondary" href="/veterinarians">Clear</a>
     <% } %>
   </form>
@@ -16,8 +27,8 @@
   <% if (vets.length === 0) { %>
     <div class="card">
       <p class="muted">
-        <% if (q) { %>
-          No veterinarians match "<%= q %>". Try a different name or specialization.
+        <% if (anyFilter) { %>
+          No veterinarians match your search or filters. Try adjusting them.
         <% } else { %>
           No veterinarians are available yet.
         <% } %>
@@ -36,6 +47,22 @@
             <li><strong>Rating:</strong>
               <%= Number(vet.averageRating).toFixed(2) %>&#9733;
               <span class="muted">(<%= countMap[vet.id] || 0 %> review<%= (countMap[vet.id] || 0) === 1 ? '' : 's' %>)</span>
+            </li>
+            <li>
+              <strong>Availability (next 30 days):</strong>
+              <% var av = availabilityMap[vet.id]; %>
+              <% if (av && av.today) { %>
+                <span class="badge badge-success">Available today</span>
+              <% } %>
+              <% if (!av || Object.keys(av.days).length === 0) { %>
+                <span class="badge badge-warning">No upcoming slots</span>
+              <% } else { %>
+                <ul class="avail-days">
+                  <% Object.keys(av.days).forEach(function (d) { %>
+                    <li><span class="avail-date"><%= d %></span>: <%= av.days[d].join(', ') %></li>
+                  <% }); %>
+                </ul>
+              <% } %>
             </li>
           </ul>
           <a class="btn btn-secondary" href="/veterinarians/<%= vet.id %>">View profile</a>
