@@ -23,6 +23,10 @@ services:
         value: "15"
       - key: PLATFORM_MARGIN
         value: "0.2"
+      - key: CANCELLATION_WINDOW_HOURS
+        value: "2"
+      - key: CANCELLATION_FEE
+        value: "20"
       # Email (SMTP) for lockout & password-reset emails — set these in the
       # Render dashboard (Environment tab). sync:false keeps secrets out of git.
       - key: SMTP_HOST

@@ -51,6 +51,7 @@
                    && new Date(appt.appointmentDateTime) > now; %>
               <div class="action-row">
                 <% if (cancellable) { %>
+                  <a class="btn btn-small btn-secondary" href="/client/appointments/<%= appt.id %>/reschedule">Reschedule</a>
                   <form action="/client/appointments/<%= appt.id %>/cancel" method="POST"
                         onsubmit="return confirm('Cancel this appointment?');">
                     <button type="submit" class="btn btn-small btn-danger">Cancel</button>

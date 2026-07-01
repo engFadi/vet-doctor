@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Reschedule appointment</h1>
+
+  <div class="card" style="margin-bottom:1.25rem;">
+    <ul class="detail-list">
+      <li><strong>Service:</strong> <%= appointment.service ? appointment.service.name : '-' %></li>
+      <li><strong>Animal:</strong> <%= appointment.animal ? appointment.animal.name : '-' %></li>
+      <li><strong>Veterinarian:</strong>
+        <%= appointment.veterinarian ? 'Dr. ' + appointment.veterinarian.fullName : '-' %></li>
+      <li><strong>Current time:</strong>
+        <%= new Date(appointment.appointmentDateTime).toLocaleString() %></li>
+    </ul>
+  </div>
+
+  <form action="/client/appointments/<%= appointment.id %>/reschedule" method="GET" class="filter-bar">
+    <label for="date">Pick a date</label>
+    <input type="date" id="date" name="date" value="<%= date %>" min="<%= today %>" />
+    <button type="submit" class="btn btn-small btn-primary">Show times</button>
+  </form>
+
+  <% if (slots.length === 0) { %>
+    <div class="alert alert-error">
+      Dr. <%= appointment.veterinarian ? appointment.veterinarian.fullName : '' %>
+      has no available times on <%= date %>. Try another date.
+    </div>
+  <% } else { %>
+    <form action="/client/appointments/<%= appointment.id %>/reschedule" method="POST" class="form">
+      <fieldset class="slot-options">
+        <legend>Available times on <%= date %></legend>
+        <% slots.forEach(function (slot, i) { %>
+          <label class="slot-option">
+            <input type="radio" name="slotId" value="<%= slot.id %>" <%= i === 0 ? 'checked' : '' %> />
+            <span><strong><%= slot.startTime %> &ndash; <%= slot.endTime %></strong></span>
+          </label>
+        <% }); %>
+      </fieldset>
+      <button type="submit" class="btn btn-primary">Confirm reschedule</button>
+    </form>
+  <% } %>
+
+  <p style="margin-top:1rem;"><a href="/client/appointments">&larr; Back to appointments</a></p>
+</section>
+
+<%- include('../partials/footer') %>

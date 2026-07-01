@@ -28,6 +28,8 @@ router.post('/book/confirm', clientController.confirmBooking);
 router.get('/appointments', clientController.listAppointments);
 router.get('/appointments/:id/record', clientController.viewRecord);
 router.post('/appointments/:id/cancel', clientController.cancelAppointment);
+router.get('/appointments/:id/reschedule', clientController.showReschedule);
+router.post('/appointments/:id/reschedule', clientController.reschedule);
 
 // Invoice & payment
 router.get('/appointments/:id/invoice', clientController.showInvoice);

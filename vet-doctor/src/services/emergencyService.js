@@ -157,7 +157,18 @@ async function processExpiredAcknowledgements() {
   });
 
   for (const appointment of expired) {
-    // SR3.11: the booking is unacknowledged -> reassign or escalate.
+    // SR3.11: mark the booking as unacknowledged, then reassign/escalate (E1).
+    const originalVetId = appointment.veterinarianId;
+    appointment.status = APPOINTMENT_STATUS.UNACKNOWLEDGED;
+    await appointment.save();
+
+    await notificationService.notify({
+      userId: originalVetId,
+      subject: 'Emergency not acknowledged in time',
+      body: 'You did not acknowledge an emergency within the deadline. It is being reassigned.',
+      appointmentId: appointment.id,
+    });
+
     await reassign(appointment);
   }
   return expired.length;

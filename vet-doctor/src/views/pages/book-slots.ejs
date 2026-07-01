@@ -28,6 +28,12 @@
       <input type="hidden" name="location" value="<%= form.location %>" />
       <input type="hidden" name="date" value="<%= form.date %>" />
 
+      <% if (typeof areaFiltered !== 'undefined' && areaFiltered) { %>
+        <p class="muted">Showing veterinarians serving your area (<%= form.location %>).</p>
+      <% } else { %>
+        <p class="muted">No veterinarian matched your area exactly &mdash; showing all available.</p>
+      <% } %>
+
       <fieldset class="slot-options">
         <legend>Available times on <%= form.date %></legend>
 

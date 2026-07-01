@@ -43,8 +43,21 @@ const ANIMALS_LIST = '/client/animals';
 const APPOINTMENTS_LIST = '/client/appointments';
 const GENDERS = ['Male', 'Female', 'Unknown'];
 
+// Cancellation policy (SR3.15): fee applies if cancelled within this window.
+const CANCELLATION_WINDOW_HOURS = Number(process.env.CANCELLATION_WINDOW_HOURS) || 2;
+const CANCELLATION_FEE = Number(process.env.CANCELLATION_FEE) || 20;
+
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+// SR3.7: does a veterinarian's service area match the requested location?
+// Free-text, so we match case-insensitively in either direction.
+function areaMatches(serviceArea, location) {
+  const a = (serviceArea || '').trim().toLowerCase();
+  const l = (location || '').trim().toLowerCase();
+  if (!a || !l) return false;
+  return l.includes(a) || a.includes(l);
 }
 
 // Available slots on a date from approved, active veterinarians (SR3.6-3.7).
@@ -302,7 +315,14 @@ exports.selectSlot = async (req, res, next) => {
       });
     }
 
-    const slots = await findAvailableSlots(form.date);
+    const allSlots = await findAvailableSlots(form.date);
+
+    // SR3.7: prefer veterinarians whose service area matches the location.
+    const matched = allSlots.filter((s) =>
+      areaMatches(s.veterinarian.serviceArea, form.location)
+    );
+    const areaFiltered = matched.length > 0;
+    const slots = areaFiltered ? matched : allSlots;
 
     return res.render('pages/book-slots', {
       title: 'Choose a Time - Vet Doctor',
@@ -310,6 +330,7 @@ exports.selectSlot = async (req, res, next) => {
       service,
       animal,
       slots,
+      areaFiltered,
     });
   } catch (err) {
     return next(err);
@@ -348,7 +369,11 @@ exports.confirmBooking = async (req, res, next) => {
     let slot;
     if (slotChoice === 'auto') {
       const available = await findAvailableSlots(form.date);
-      slot = available[0];
+      // SR3.8 + SR3.7: prefer an area-matched vet, else the earliest available.
+      const matched = available.filter((s) =>
+        areaMatches(s.veterinarian.serviceArea, form.location)
+      );
+      slot = (matched.length ? matched : available)[0];
     } else {
       slot = await Slot.findByPk(slotChoice, {
         include: [
@@ -993,6 +1018,12 @@ exports.cancelAppointment = async (req, res, next) => {
       return res.redirect(APPOINTMENTS_LIST);
     }
 
+    // SR3.15: a cancellation fee applies if cancelled within the window.
+    const hoursUntil = (new Date(appointment.appointmentDateTime) - Date.now()) / 3600000;
+    const lateCancel = hoursUntil < CANCELLATION_WINDOW_HOURS;
+    const currency = req.app.locals.currency;
+    const when = new Date(appointment.appointmentDateTime).toLocaleString();
+
     await appointment.cancel();
 
     // Release the slot back to available.
@@ -1001,17 +1032,149 @@ exports.cancelAppointment = async (req, res, next) => {
       await appointment.slot.save();
     }
 
-    // Notify the assigned veterinarian (SR3.14).
+    const feeNote = lateCancel
+      ? ` A cancellation fee of ${CANCELLATION_FEE} ${currency} applies because it was cancelled less than ${CANCELLATION_WINDOW_HOURS} hours before the visit.`
+      : '';
+
+    // Notify both the client and the assigned veterinarian (SR3.14).
+    await notificationService.notify({
+      userId: req.session.user.id,
+      subject: 'Appointment cancelled',
+      body: `Your appointment scheduled for ${when} has been cancelled.${feeNote}`,
+      appointmentId: appointment.id,
+    });
     await notificationService.notify({
       userId: appointment.veterinarianId,
       subject: 'Appointment cancelled',
-      body: `The client cancelled the appointment scheduled for ${new Date(
-        appointment.appointmentDateTime
-      ).toLocaleString()}.`,
+      body: `The client cancelled the appointment scheduled for ${when}.`,
       appointmentId: appointment.id,
     });
 
-    req.flash('success', 'Your appointment has been cancelled.');
+    req.flash(
+      'success',
+      lateCancel
+        ? `Your appointment has been cancelled.${feeNote}` // SR3.15 on-screen notice
+        : 'Your appointment has been cancelled.'
+    );
+    return res.redirect(APPOINTMENTS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// GET /client/appointments/:id/reschedule - choose a new time (SR3.13)
+exports.showReschedule = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, clientId: req.session.user.id },
+      include: [
+        { model: Service, as: 'service' },
+        { model: Animal, as: 'animal' },
+        { model: User, as: 'veterinarian', attributes: ['id', 'fullName'] },
+      ],
+    });
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (!isActive(appointment.status)) {
+      req.flash('error', 'Only active appointments can be rescheduled.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (new Date(appointment.appointmentDateTime) <= new Date()) {
+      req.flash('error', 'Appointments can only be rescheduled before their scheduled time.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+
+    const date = (req.query.date || todayISO()).trim();
+    // Same veterinarian's available slots on the chosen date.
+    const slots = await Slot.findAll({
+      where: {
+        veterinarianId: appointment.veterinarianId,
+        date,
+        status: AVAILABILITY_STATUS.AVAILABLE,
+      },
+      order: [['startTime', 'ASC']],
+    });
+
+    res.render('pages/client-reschedule', {
+      title: 'Reschedule Appointment - Vet Doctor',
+      appointment,
+      slots,
+      date,
+      today: todayISO(),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /client/appointments/:id/reschedule - move to a new available slot (SR3.13)
+exports.reschedule = async (req, res, next) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, clientId: req.session.user.id },
+      include: [{ model: Slot, as: 'slot' }],
+    });
+    if (!appointment) {
+      req.flash('error', 'Appointment not found.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (!isActive(appointment.status)) {
+      req.flash('error', 'Only active appointments can be rescheduled.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+    if (new Date(appointment.appointmentDateTime) <= new Date()) {
+      req.flash('error', 'Appointments can only be rescheduled before their scheduled time.');
+      return res.redirect(APPOINTMENTS_LIST);
+    }
+
+    const slotId = (req.body.slotId || '').trim();
+    // New slot must belong to the same vet and still be available (SR3.6).
+    const newSlot = slotId
+      ? await Slot.findOne({
+          where: {
+            id: slotId,
+            veterinarianId: appointment.veterinarianId,
+            status: AVAILABILITY_STATUS.AVAILABLE,
+          },
+        })
+      : null;
+    if (!newSlot) {
+      req.flash('error', 'That time slot is no longer available. Please choose another.');
+      return res.redirect(`/client/appointments/${appointment.id}/reschedule`);
+    }
+
+    // Release the old slot, book the new one.
+    if (appointment.slot && appointment.slot.status === AVAILABILITY_STATUS.BOOKED) {
+      appointment.slot.status = AVAILABILITY_STATUS.AVAILABLE;
+      await appointment.slot.save();
+    }
+    await newSlot.markBooked();
+
+    appointment.slotId = newSlot.id;
+    appointment.appointmentDateTime = new Date(`${newSlot.date}T${newSlot.startTime}:00`);
+    // New time -> reminders should fire again.
+    appointment.reminder24hSent = false;
+    appointment.reminder1hSent = false;
+    await appointment.save();
+
+    const when = appointment.appointmentDateTime.toLocaleString();
+    // Notify both the client and the veterinarian (SR3.14).
+    await notificationService.notify({
+      userId: req.session.user.id,
+      subject: 'Appointment rescheduled',
+      body: `Your appointment has been rescheduled to ${when}.`,
+      appointmentId: appointment.id,
+    });
+    await notificationService.notify({
+      userId: appointment.veterinarianId,
+      subject: 'Appointment rescheduled',
+      body: `The client rescheduled their appointment to ${when}.`,
+      appointmentId: appointment.id,
+    });
+
+    req.flash('success', `Your appointment has been rescheduled to ${when}.`);
     return res.redirect(APPOINTMENTS_LIST);
   } catch (err) {
     return next(err);
