@@ -56,6 +56,9 @@
                 <% if (appt.status === statuses.COMPLETED) { %>
                   <a class="btn btn-small btn-secondary" href="/vet/appointments/<%= appt.id %>/record">Record</a>
                 <% } %>
+                <% if (appt.status !== statuses.CANCELLED) { %>
+                  <a class="btn btn-small btn-secondary" href="/appointments/<%= appt.id %>/messages">Messages</a>
+                <% } %>
                 <% if (next.length === 0 && appt.status !== statuses.COMPLETED) { %>
                   <span class="muted">-</span>
                 <% } %>

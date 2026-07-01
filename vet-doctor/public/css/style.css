@@ -471,6 +471,45 @@ main.container {
   color: #b8860b;
 }
 
+/* Message thread */
+.msg-thread {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  background: #fbfdfc;
+}
+
+.msg {
+  max-width: 80%;
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.msg-mine {
+  margin-left: auto;
+  background: #e6f6f0;
+  border-color: #bfe6d7;
+}
+
+.msg-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+
+.msg-image {
+  max-width: 200px;
+  border-radius: 6px;
+  margin-top: 0.3rem;
+  display: block;
+}
+
 .avail-days {
   list-style: none;
   padding: 0;

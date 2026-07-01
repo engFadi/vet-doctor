@@ -21,6 +21,7 @@ const vetRoutes = require('./src/routes/vetRoutes');
 const clientRoutes = require('./src/routes/clientRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const directoryRoutes = require('./src/routes/directoryRoutes');
+const messageRoutes = require('./src/routes/messageRoutes');
 const { seedAdmin } = require('./seeders/adminSeeder');
 const { seedServices } = require('./seeders/serviceSeeder');
 const emergencyService = require('./src/services/emergencyService');
@@ -76,6 +77,7 @@ app.use('/vet', vetRoutes);
 app.use('/client', clientRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/veterinarians', directoryRoutes);
+app.use('/appointments', messageRoutes);
 app.use('/', indexRoutes);
 
 // 404 handler

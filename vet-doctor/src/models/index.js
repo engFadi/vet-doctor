@@ -28,6 +28,7 @@ db.Review = require('./Review')(sequelize);
 db.ConsultationRequest = require('./ConsultationRequest')(sequelize);
 db.AdminAction = require('./AdminAction')(sequelize);
 db.PerformanceReport = require('./PerformanceReport')(sequelize);
+db.Message = require('./Message')(sequelize);
 
 // --- Define associations (once all models are loaded) ---
 Object.values(db).forEach((model) => {

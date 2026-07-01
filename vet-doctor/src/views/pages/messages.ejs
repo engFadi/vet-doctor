@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+
+<section class="auth auth-wide">
+  <h1>Messages</h1>
+  <p class="muted">
+    <%= appointment.service ? appointment.service.name : 'Appointment' %> &middot;
+    <% if (currentUserId === appointment.clientId) { %>
+      with Dr. <%= appointment.veterinarian ? appointment.veterinarian.fullName : '' %>
+    <% } else { %>
+      with <%= appointment.client ? appointment.client.fullName : '' %>
+    <% } %>
+  </p>
+
+  <div class="msg-thread">
+    <% if (messages.length === 0) { %>
+      <p class="muted">No messages yet. Start the conversation below.</p>
+    <% } else { %>
+      <% messages.forEach(function (m) { %>
+        <div class="msg <%= m.senderId === currentUserId ? 'msg-mine' : '' %>">
+          <div class="msg-meta">
+            <%= m.sender ? m.sender.fullName : 'User' %> &middot;
+            <%= new Date(m.createdAt).toLocaleString() %>
+          </div>
+          <% if (m.body) { %><div class="msg-body"><%= m.body %></div><% } %>
+          <% if (m.imageFile) { %>
+            <a href="/uploads/<%= m.imageFile %>" target="_blank">
+              <img class="msg-image" src="/uploads/<%= m.imageFile %>" alt="attachment" />
+            </a>
+          <% } %>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+
+  <% if (canSend) { %>
+    <form action="/appointments/<%= appointment.id %>/messages" method="POST"
+          enctype="multipart/form-data" class="form">
+      <label for="body">Message</label>
+      <textarea id="body" name="body" rows="2" placeholder="Type a message..."></textarea>
+      <label for="image">Attach image <span class="muted">(optional, max 10 MB)</span></label>
+      <input type="file" id="image" name="image" accept="image/*" />
+      <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+  <% } else { %>
+    <p class="muted">Messaging is closed for this appointment (not active).</p>
+  <% } %>
+
+  <p style="margin-top:1rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
+</section>
+
+<%- include('../partials/footer') %>

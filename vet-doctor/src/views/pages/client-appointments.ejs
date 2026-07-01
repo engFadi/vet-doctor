@@ -50,6 +50,9 @@
                    && appt.status !== statuses.COMPLETED
                    && new Date(appt.appointmentDateTime) > now; %>
               <div class="action-row">
+                <% if (appt.status !== statuses.CANCELLED) { %>
+                  <a class="btn btn-small btn-secondary" href="/appointments/<%= appt.id %>/messages">Messages</a>
+                <% } %>
                 <% if (cancellable) { %>
                   <a class="btn btn-small btn-secondary" href="/client/appointments/<%= appt.id %>/reschedule">Reschedule</a>
                   <form action="/client/appointments/<%= appt.id %>/cancel" method="POST"
