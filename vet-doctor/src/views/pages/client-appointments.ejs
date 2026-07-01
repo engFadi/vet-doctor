@@ -75,6 +75,9 @@
                      }); %>
                   <% if (openConsult) { %>
                     <span class="badge badge-info">Consult: <%= openConsult.status %></span>
+                    <% if (openConsult.status === consultStatuses.ACCEPTED) { %>
+                      <a class="btn btn-small btn-primary" href="<%= meetingRoom(openConsult.id) %>" target="_blank" rel="noopener">Join call</a>
+                    <% } %>
                   <% } else { %>
                     <a class="btn btn-small btn-secondary" href="/client/appointments/<%= appt.id %>/consult">Request consultation</a>
                   <% } %>

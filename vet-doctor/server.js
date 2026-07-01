@@ -45,6 +45,9 @@ app.locals.currency = process.env.CURRENCY || 'ILS';
 // Appointment status label helper, available to every view as `statusLabel`.
 app.locals.statusLabel = require('./src/utils/appointmentStatus').statusLabel;
 
+// Jitsi meeting-room helper, available to every view as `meetingRoom` (SR7.14).
+app.locals.meetingRoom = require('./src/utils/meeting').roomFor;
+
 // Body parsers (ready for forms in later tasks)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

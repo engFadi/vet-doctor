@@ -59,6 +59,7 @@ router.get('/appointments/:id/invoice/pdf', vetController.downloadInvoicePdf);
 router.get('/consultations', vetController.listConsultations);
 router.post('/consultations/:id/accept', vetController.acceptConsultation);
 router.post('/consultations/:id/decline', vetController.declineConsultation);
+router.post('/consultations/:id/remove', vetController.removeConsultation);
 
 // Payment history
 router.get('/payments', vetController.paymentHistory);

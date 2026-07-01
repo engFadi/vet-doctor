@@ -31,6 +31,33 @@
     </div>
   <% } %>
 
+  <h2 style="margin-top:2rem;">Accepted consultations</h2>
+  <% if (accepted.length === 0) { %>
+    <div class="card"><p class="muted">No accepted consultations.</p></div>
+  <% } else { %>
+    <div class="card-grid">
+      <% accepted.forEach(function (c) { %>
+        <article class="card">
+          <h3><%= c.consultationType %> consultation</h3>
+          <ul class="detail-list">
+            <li><strong>Client:</strong> <%= c.client ? c.client.fullName : '-' %></li>
+            <li><strong>Service:</strong>
+              <%= c.appointment && c.appointment.service ? c.appointment.service.name : '-' %></li>
+          </ul>
+          <div class="action-row">
+            <a class="btn btn-small btn-primary" href="<%= meetingRoom(c.id) %>" target="_blank" rel="noopener">
+              Join call
+            </a>
+            <form action="/vet/consultations/<%= c.id %>/remove" method="POST"
+                  onsubmit="return confirm('End and remove this consultation?');">
+              <button type="submit" class="btn btn-small btn-danger">Remove</button>
+            </form>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+
   <p style="margin-top:1.5rem;"><a href="/dashboard">&larr; Back to dashboard</a></p>
 </section>
 

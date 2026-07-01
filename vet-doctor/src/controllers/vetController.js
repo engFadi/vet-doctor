@@ -518,20 +518,29 @@ function findOwnConsultation(req, id) {
   });
 }
 
-// GET /vet/consultations - pending consultation requests for this vet
+// GET /vet/consultations - pending + accepted consultations for this vet
 exports.listConsultations = async (req, res, next) => {
   try {
-    const consultations = await ConsultationRequest.findAll({
-      where: { veterinarianId: req.session.user.id, status: CONSULTATION_STATUS.PENDING },
-      include: [
-        { model: db.User, as: 'client', attributes: ['id', 'fullName'] },
-        { model: db.Appointment, as: 'appointment', include: [{ model: db.Service, as: 'service' }] },
-      ],
-      order: [['requestDate', 'ASC']],
-    });
+    const includes = [
+      { model: db.User, as: 'client', attributes: ['id', 'fullName'] },
+      { model: db.Appointment, as: 'appointment', include: [{ model: db.Service, as: 'service' }] },
+    ];
+    const [consultations, accepted] = await Promise.all([
+      ConsultationRequest.findAll({
+        where: { veterinarianId: req.session.user.id, status: CONSULTATION_STATUS.PENDING },
+        include: includes,
+        order: [['requestDate', 'ASC']],
+      }),
+      ConsultationRequest.findAll({
+        where: { veterinarianId: req.session.user.id, status: CONSULTATION_STATUS.ACCEPTED },
+        include: includes,
+        order: [['scheduledTime', 'DESC']],
+      }),
+    ]);
     res.render('pages/vet-consultations', {
       title: 'Consultation Requests - Vet Doctor',
       consultations,
+      accepted,
     });
   } catch (err) {
     next(err);
@@ -550,14 +559,48 @@ exports.acceptConsultation = async (req, res, next) => {
     consultation.scheduledTime = new Date();
     await consultation.save();
 
+    // SR7.14: start a voice/video session — share the room link with the client.
+    const link = require('../utils/meeting').roomFor(consultation.id);
     await notificationService.notify({
       userId: consultation.clientId,
       subject: 'Consultation accepted',
-      body: `Your ${consultation.consultationType} consultation request was accepted.`,
+      body: `Your ${consultation.consultationType} consultation was accepted. Join the call: ${link}`,
       appointmentId: consultation.appointmentId,
     });
 
     req.flash('success', 'Consultation accepted. The client has been notified.');
+    return res.redirect(CONSULTATIONS_LIST);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /vet/consultations/:id/remove - end an accepted consultation
+exports.removeConsultation = async (req, res, next) => {
+  try {
+    const consultation = await ConsultationRequest.findOne({
+      where: {
+        id: req.params.id,
+        veterinarianId: req.session.user.id,
+        status: CONSULTATION_STATUS.ACCEPTED,
+      },
+    });
+    if (!consultation) {
+      req.flash('error', 'Accepted consultation not found.');
+      return res.redirect(CONSULTATIONS_LIST);
+    }
+
+    consultation.status = CONSULTATION_STATUS.COMPLETED;
+    await consultation.save();
+
+    await notificationService.notify({
+      userId: consultation.clientId,
+      subject: 'Consultation ended',
+      body: 'Your consultation has ended. You can request another one if you need to.',
+      appointmentId: consultation.appointmentId,
+    });
+
+    req.flash('success', 'Consultation removed.');
     return res.redirect(CONSULTATIONS_LIST);
   } catch (err) {
     return next(err);
